@@ -1,0 +1,95 @@
+.container {
+  position: relative;
+  min-height: 100vh;
+  color: white;
+}
+
+.bg {
+  object-fit: cover;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 20, 60, 0.8);
+  pointer-events: none;
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 60px;
+}
+
+.title {
+  font-size: 40px;
+  margin-bottom: 20px;
+}
+
+.desc {
+  max-width: 600px;
+  margin: auto;
+  margin-bottom: 40px;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+}
+
+/* CARD */
+.card {
+  position: relative;
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid #6366f1;
+  background: rgba(40, 20, 80, 0.3);
+  backdrop-filter: blur(10px);
+  text-align: left;
+}
+
+/* BADGE */
+.badge {
+  position: absolute;
+  top: -12px;
+  left: 20px;
+  background: #4f46e5;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+/* LIST */
+.card ul {
+  margin-top: 10px;
+  padding-left: 20px;
+}
+
+/* BUTTON KIRI */
+.back {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+  background: #4f46e5;
+  padding: 10px 20px;
+  border-radius: 20px;
+  color: white;
+  text-decoration: none;
+  z-index: 3;
+}
+
+/* BUTTON KANAN */
+.signup {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: #4f46e5;
+  padding: 10px 20px;
+  border-radius: 20px;
+  color: white;
+  border: none;
+  z-index: 3;
+}

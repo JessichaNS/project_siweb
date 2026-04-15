@@ -1,0 +1,40 @@
+.hero {
+  position: relative;
+  height: 100vh;
+}
+
+.bg {
+  object-fit: cover;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 20, 50, 0.6);
+  pointer-events: none;
+}
+
+.content {
+  position: absolute;
+  top: 50%;
+  left: 80px;
+  transform: translateY(-50%);
+  color: white;
+  z-index: 2;
+}
+
+.title {
+  font-size: 48px;
+}
+
+.subtitle {
+  margin: 20px 0;
+}
+
+.btn {
+  background: #4f46e5;
+  padding: 12px 24px;
+  border-radius: 20px;
+  text-decoration: none;
+  color: white;
+}
