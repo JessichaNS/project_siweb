@@ -25,3 +25,45 @@ body {
   height: 100%;
   width: 100%;
 }
+
+/* FLEET PAGE */
+.fleet-container {
+  padding: 20px;
+  font-family: sans-serif;
+}
+
+.fleet-navbar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.fleet-menu span {
+  margin-right: 15px;
+  cursor: pointer;
+}
+
+.fleet-active {
+  font-weight: bold;
+}
+
+.fleet-title {
+  margin-bottom: 15px;
+}
+
+.fleet-grid {
+  display: flex;
+  gap: 10px;
+}
+
+.fleet-card {
+  padding: 20px;
+  background: #eee;
+  border-radius: 8px;
+}
+
+.fleet-card-active {
+  padding: 20px;
+  background: lightgreen;
+  border-radius: 8px;
+}

@@ -1,5 +1,6 @@
 "use client";
-import styles from '@/ui/auth/auth.module.css';
+
+import styles from '@/app/ui/auth/auth.module.css';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -7,15 +8,15 @@ import { useState } from 'react';
 export default function LoginPage() {
   const router = useRouter();
 
-  const [user, setUser] = useState<string>("");
-  const [pass, setPass] = useState<string>("");
+  const [user, setUser] = useState("");
+  const [pass, setPass] = useState("");
 
-  const handleLogin = (): void => {
+  const handleLogin = () => {
     const savedUser = localStorage.getItem("user");
     const savedPass = localStorage.getItem("pass");
 
     if (!user || !pass) {
-      alert("Tidak dapat login! Harap isi semua field.");
+      alert("Isi semua field!");
       return;
     }
 
@@ -29,27 +30,25 @@ export default function LoginPage() {
   return (
     <main className={styles.container}>
       <div className={styles.card}>
-        <h2>Login to Shipy</h2>
-        <p>Enter your credentials to access the bridge.</p>
+        <h2>Login</h2>
 
         <input
           value={user}
           onChange={(e) => setUser(e.target.value)}
-          placeholder="commander@maritime.intel"
+          placeholder="Username"
         />
 
         <input
           type="password"
           value={pass}
           onChange={(e) => setPass(e.target.value)}
-          placeholder="********"
+          placeholder="Password"
         />
 
-        <button onClick={handleLogin}>Login →</button>
+        <button onClick={handleLogin}>Login</button>
 
         <p>
-          don't have account?{" "}
-          <Link href="/signup">Sign Up</Link>
+          Belum punya akun? <Link href="/signup">Sign Up</Link>
         </p>
       </div>
     </main>
