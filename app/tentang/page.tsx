@@ -25,7 +25,9 @@ export default function TentangPage() {
         <div className={styles.grid}>
           <div className={styles.card}>
             <span className={styles.badge}>VISI</span>
-            <p>Menjadi ekosistem digital utama bagi industri maritim global yang menghubungkan kapal, darat, dan data secara nirkabel.</p>
+            <p>
+              Menjadi ekosistem digital utama bagi industri maritim global yang menghubungkan kapal, darat, dan data secara nirkabel.
+            </p>
           </div>
 
           <div className={styles.card}>
@@ -63,10 +65,10 @@ export default function TentangPage() {
         ← Kembali
       </Link>
 
-      {/* BUTTON KANAN BAWAH */}
-      <button className={styles.signup}>
+      {/* BUTTON KANAN BAWAH (SUDAH FIX KE SIGNUP) */}
+      <Link href="/signup" className={styles.signup}>
         Sign Up →
-      </button>
+      </Link>
     </main>
   );
 }
