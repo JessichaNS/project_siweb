@@ -37,7 +37,7 @@
     "app/lib/placeholder-data.ts",
     "scripts/seed.js",
     ".next/dev/types/**/*.ts"
-  ],
+, "app/dashboard/page.txs"  ],
   "exclude": [
     "node_modules"
   ]

@@ -21,7 +21,7 @@ export default function LoginPage() {
     }
 
     if (user === savedUser && pass === savedPass) {
-      router.push("/fleet");
+      router.push("/dashboard");
     } else {
       alert("Username atau password salah!");
     }
@@ -30,27 +30,40 @@ export default function LoginPage() {
   return (
     <main className={styles.container}>
       <div className={styles.card}>
-        <h2>Login</h2>
+        <h2>Login to Shipy</h2>
 
-        <input
-          value={user}
-          onChange={(e) => setUser(e.target.value)}
-          placeholder="Username"
-        />
+        <div className={styles.field}>
+          <label>Masukkan Username Anda</label>
+          <input
+            value={user}
+            onChange={(e) => setUser(e.target.value)}
+            placeholder="username"
+          />
+        </div>
 
-        <input
-          type="password"
-          value={pass}
-          onChange={(e) => setPass(e.target.value)}
-          placeholder="Password"
-        />
+        <div className={styles.field}>
+          <label>Masukkan Password Anda</label>
+          <input
+            type="password"
+            value={pass}
+            onChange={(e) => setPass(e.target.value)}
+            placeholder="password"
+          />
+        </div>
 
-        <button onClick={handleLogin}>Login</button>
+        <button onClick={handleLogin} className={styles.btn}>
+          Login 
+        </button>
 
-        <p>
+        <p className={styles.switch}>
           Belum punya akun? <Link href="/signup">Sign Up</Link>
         </p>
       </div>
+
+      {/* tombol kembali */}
+      <Link href="/tentang" className={styles.back}>
+        ← Kembali
+      </Link>
     </main>
   );
 }

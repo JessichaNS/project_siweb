@@ -1,0 +1,652 @@
+.container {
+  min-height: 100vh;
+  background: #14051f;
+  color: white;
+  padding: 10px 14px 12px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.topbar {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #24103f;
+  border-bottom: 1px solid rgba(140, 109, 255, 0.35);
+  padding: 0 18px;
+  margin: -10px -14px 14px;
+}
+
+.logoBox {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoImage {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.navItem {
+  color: white;
+  text-decoration: none;
+  font-size: 17px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 14px;
+}
+
+.active {
+  background: #6e5bff;
+  box-shadow: 0 0 14px rgba(110, 91, 255, 0.35);
+}
+
+.userBox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-left: 18px;
+  border-left: 1px solid rgba(154, 123, 255, 0.45);
+  font-weight: 700;
+}
+
+.userIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #6e5bff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.userImage {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.summaryBar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: center;
+  gap: 8px;
+  background: #1e0835;
+  border: 2px solid #16a6ff;
+  border-radius: 18px;
+  padding: 10px 18px;
+  margin-bottom: 22px;
+}
+
+.summaryItem {
+  text-align: center;
+}
+
+.summaryItem span {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.summaryItem strong {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  grid-template-areas:
+    "cargo map status"
+    "fuel delivery alerts";
+  gap: 16px;
+  align-items: stretch;
+}
+
+.cargoCard {
+  grid-area: cargo;
+}
+
+.mapCard {
+  grid-area: map;
+}
+
+.statusCard {
+  grid-area: status;
+}
+
+.fuelCard {
+  grid-area: fuel;
+}
+
+.deliveryCard {
+  grid-area: delivery;
+}
+
+.alertsCard {
+  grid-area: alerts;
+}
+
+.cargoCard,
+.statusCard,
+.fuelCard,
+.deliveryCard,
+.alertsCard {
+  background: #2a1147;
+  border: 2px solid #4f38ff;
+  border-radius: 22px;
+  box-shadow: inset 0 0 0 1px rgba(124, 92, 255, 0.08);
+}
+
+.cargoCard,
+.statusCard,
+.fuelCard,
+.alertsCard {
+  padding: 16px 18px 14px;
+}
+
+.mapCard {
+  position: relative;
+  height: 250px;
+  overflow: hidden;
+  padding: 0;
+  border-radius: 22px;
+  background: #2a1147;
+  border: 2px solid #4f38ff;
+}
+
+.cargoCard {
+  min-height: 188px;
+}
+
+.statusCard {
+  min-height: 224px;
+}
+
+.fuelCard,
+.deliveryCard,
+.alertsCard {
+  min-height: 300px;
+}
+
+.cargoCard h3,
+.statusCard h3,
+.fuelCard h3,
+.alertsCard h3 {
+  margin: 0 0 14px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.progressWrap {
+  margin-top: 24px;
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.progressBar {
+  width: 100%;
+  height: 26px;
+  background: #d8d8d8;
+  overflow: hidden;
+}
+
+.progressFill {
+  width: 65%;
+  height: 100%;
+  background: linear-gradient(90deg, #5132db 0%, #6e4bff 100%);
+}
+
+.smallText {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #e7e0ff;
+  line-height: 1.35;
+}
+
+.greenText {
+  color: #24ff43;
+  text-align: center;
+  font-weight: 800;
+  margin-top: 40px;
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+.mapImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: brightness(0.95) contrast(1.08);
+}
+
+.dot {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  box-shadow: 0 0 8px currentColor;
+  opacity: 0.95;
+}
+
+.red {
+  top: 58px;
+  right: 31px;
+  background: #ff1b1b;
+  color: #ff1b1b;
+}
+
+.green {
+  top: 108px;
+  right: 52px;
+  background: #46ff2f;
+  color: #46ff2f;
+}
+
+.yellow {
+  top: 138px;
+  right: 132px;
+  background: #ffd94a;
+  color: #ffd94a;
+}
+
+.blueOne {
+  bottom: 52px;
+  left: 30px;
+  background: #56b9ff;
+  color: #56b9ff;
+}
+
+.blueTwo {
+  bottom: 66px;
+  right: 110px;
+  background: #56b9ff;
+  color: #56b9ff;
+}
+
+.statusBars {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.statusBar {
+  width: 100%;
+  height: 22px;
+  background: rgba(151, 130, 208, 0.3);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+}
+
+.fillBlue {
+  width: 72%;
+  background: #58b5ff;
+}
+
+.fillGreen {
+  width: 8%;
+  background: #34ff34;
+}
+
+.fillYellow {
+  width: 6%;
+  background: #ffd84d;
+}
+
+.fillRed {
+  width: 11%;
+  background: #ff2424;
+}
+
+.legend {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 16px;
+  margin-top: 22px;
+  font-size: 12px;
+}
+
+.legend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.legendBlue {
+  background: #58b5ff;
+}
+
+.legendGreen {
+  background: #34ff34;
+}
+
+.legendYellow {
+  background: #ffd84d;
+}
+
+.legendRed {
+  background: #ff2424;
+}
+
+.fuelStats {
+  margin-bottom: 8px;
+}
+
+.muted {
+  color: #d0c4ff;
+  margin: 0;
+  font-size: 13px;
+}
+
+.fuelNumberRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.fuelNumberRow h2 {
+  font-size: 28px;
+  margin: 0;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.unit {
+  font-size: 12px;
+  color: #cfc7f2;
+}
+
+.mutedSmall {
+  color: #8e7bbd;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.chart {
+  position: relative;
+  height: 150px;
+  margin-top: 10px;
+}
+
+.chartGrid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+
+.svgChart {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+.chartPoint {
+  fill: #5c4bff;
+  stroke: #ffffff;
+  stroke-width: 1.5;
+}
+
+.fuelXAxis {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #d6cbff;
+  margin-top: 6px;
+  padding-left: 6px;
+}
+
+.deliveryCard {
+  padding: 18px 22px 16px;
+}
+
+.deliveryHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.deliveryHeaderLeft {
+  display: flex;
+  flex-direction: column;
+}
+
+.deliveryTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.deliverySubtitle {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #bfb6d9;
+}
+
+.deliveryValueRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.deliveryBigNumber {
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.deliveryBigUnit {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.deliveryGrowthBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.05;
+  margin-top: 2px;
+}
+
+.deliveryGrowthTop {
+  font-size: 16px;
+  font-weight: 800;
+  color: #21ff4b;
+}
+
+.deliveryGrowthBottom {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #c6c1d7;
+  text-align: right;
+}
+
+.deliveryChartBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.deliveryLeftAxis {
+  width: 20px;
+  height: 149px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: right;
+  font-size: 8px;
+  font-weight: 600;
+  color: #c9c3dc;
+  padding-top: 2px;
+}
+
+.deliveryAxisLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: #c9c3dc;
+  margin-bottom: 2px;
+}
+
+.deliveryChartSvg {
+  flex: 1;
+  width: 100%;
+  height: 190px;
+  display: block;
+}
+
+.deliveryAxisLine {
+  stroke: #5a46ff;
+  stroke-width: 2;
+}
+
+.deliveryGuideLine {
+  stroke: rgba(90, 70, 255, 0.28);
+  stroke-width: 2;
+}
+
+.deliveryPoint {
+  fill: #5a46ff;
+  stroke: #ffffff;
+  stroke-width: 3;
+}
+
+.deliveryPointText {
+  fill: #d7d1e7;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.deliveryWeekText {
+  fill: #d7d1e7;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.alertBox {
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-top: 12px;
+}
+
+.alertInner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.alertLeft {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.alertIcon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.alertBox strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.alertBox p {
+  margin: 0;
+  font-size: 11px;
+  text-align: right;
+  opacity: 0.85;
+}
+
+.alertRed {
+  background: #a00f26;
+  border: 1px solid #ff375d;
+}
+
+.alertYellow {
+  background: #8c7514;
+  border: 1px solid #f0d243;
+}
+
+.alertBrown {
+  background: #8a5834;
+  border: 1px solid #c2814e;
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "cargo"
+      "map"
+      "status"
+      "fuel"
+      "delivery"
+      "alerts";
+  }
+
+  .summaryBar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .nav {
+    display: none;
+  }
+
+  .mapCard {
+    height: 220px;
+  }
+}

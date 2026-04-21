@@ -66,8 +66,8 @@ export default function TentangPage() {
       </Link>
 
       {/* BUTTON KANAN BAWAH (SUDAH FIX KE SIGNUP) */}
-      <Link href="/signup" className={styles.signup}>
-        Sign Up →
+      <Link href="/login" className={styles.signup}>
+        Login →
       </Link>
     </main>
   );

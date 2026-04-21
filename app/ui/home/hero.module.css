@@ -1,6 +1,8 @@
 .hero {
   position: relative;
+  width: 100vw;
   height: 100vh;
+  overflow: hidden;
 }
 
 .bg {
@@ -16,11 +18,15 @@
 
 .content {
   position: absolute;
-  top: 50%;
-  left: 80px;
-  transform: translateY(-50%);
+  right: 60px;
+  bottom: 60px;
+  left: auto;
+  top: auto;
+  transform: none;
   color: white;
   z-index: 2;
+  text-align: right;
+  max-width: 520px;
 }
 
 .title {
@@ -32,6 +38,7 @@
 }
 
 .btn {
+  display: inline-block;
   background: #4f46e5;
   padding: 12px 24px;
   border-radius: 20px;

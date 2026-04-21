@@ -19,11 +19,18 @@ input[type='number']::-webkit-outer-spin-button {
 
 html,
 body {
-  padding: 0;
   margin: 0;
-  overflow: hidden; /* Ini akan memaksa scrollbar hilang total dari browser */
-  height: 100%;
+  padding: 0;
   width: 100%;
+  height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  overflow-x: hidden;
 }
 
 /* FLEET PAGE */
