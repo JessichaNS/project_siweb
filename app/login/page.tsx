@@ -12,19 +12,26 @@ export default function LoginPage() {
   const [pass, setPass] = useState("");
 
   const handleLogin = () => {
-    const savedUser = localStorage.getItem("user");
-    const savedPass = localStorage.getItem("pass");
-
     if (!user || !pass) {
       alert("Isi semua field!");
       return;
     }
 
-    if (user === savedUser && pass === savedPass) {
+    if (user === "admin123" && pass === "admin321") {
+      localStorage.setItem("role", "admin");
+      localStorage.setItem("user", user);
       router.push("/dashboard");
-    } else {
-      alert("Username atau password salah!");
+      return;
     }
+
+    if (user === "user123" && pass === "user321") {
+      localStorage.setItem("role", "user");
+      localStorage.setItem("user", user);
+      router.push("/dashboard");
+      return;
+    }
+
+    alert("Username atau password salah!");
   };
 
   return (
@@ -37,7 +44,7 @@ export default function LoginPage() {
           <input
             value={user}
             onChange={(e) => setUser(e.target.value)}
-            placeholder="username"
+            placeholder="admin123 / user123"
           />
         </div>
 
@@ -47,12 +54,12 @@ export default function LoginPage() {
             type="password"
             value={pass}
             onChange={(e) => setPass(e.target.value)}
-            placeholder="password"
+            placeholder="admin321 / user321"
           />
         </div>
 
         <button onClick={handleLogin} className={styles.btn}>
-          Login 
+          Login
         </button>
 
         <p className={styles.switch}>
@@ -60,7 +67,6 @@ export default function LoginPage() {
         </p>
       </div>
 
-      {/* tombol kembali */}
       <Link href="/tentang" className={styles.back}>
         ← Kembali
       </Link>

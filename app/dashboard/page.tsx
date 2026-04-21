@@ -1,7 +1,22 @@
+"use client";
+
 import styles from './dash.module.css';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 export default function DashboardPage() {
+  const [fleetLink, setFleetLink] = useState("/fleet_usr");
+
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+
+    if (role === "admin") {
+      setFleetLink("/fleet_adm");
+    } else {
+      setFleetLink("/fleet_usr");
+    }
+  }, []);
+
   return (
     <main className={styles.container}>
       <header className={styles.topbar}>
@@ -16,15 +31,18 @@ export default function DashboardPage() {
         </div>
 
         <nav className={styles.nav}>
-          <Link href="#" className={`${styles.navItem} ${styles.active}`}>
+          <Link href="dashboard" className={`${styles.navItem} ${styles.active}`}>
             Dashboard
           </Link>
-          <Link href="#" className={styles.navItem}>
+
+          <Link href={fleetLink} className={styles.navItem}>
             Fleet
           </Link>
+
           <Link href="#" className={styles.navItem}>
             Map
           </Link>
+
           <Link href="#" className={styles.navItem}>
             Analytic
           </Link>
@@ -38,7 +56,6 @@ export default function DashboardPage() {
               className={styles.userImage}
             />
           </div>
-          <span>User</span>
         </div>
       </header>
 

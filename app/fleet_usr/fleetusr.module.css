@@ -1,0 +1,392 @@
+.container {
+  min-height: 100vh;
+  background: #14051f;
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+  padding: 0 14px 18px;
+}
+
+.topbar {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #24103f;
+  border-bottom: 1px solid rgba(140, 109, 255, 0.35);
+  padding: 0 20px;
+  margin: 0 -14px 18px;
+}
+
+.logoBox {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoImage {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.navItem {
+  color: white;
+  text-decoration: none;
+  font-size: 17px;
+  font-weight: 600;
+  padding: 10px 22px;
+  border-radius: 14px;
+}
+
+.active {
+  background: #6e5bff;
+  box-shadow: 0 0 14px rgba(110, 91, 255, 0.35);
+}
+
+.topRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.userBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 16px;
+  border-left: 1px solid rgba(154, 123, 255, 0.45);
+  font-weight: 700;
+}
+
+.userIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #6e5bff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.userImage {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: 2fr 1.05fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.leftPanel,
+.infoCard,
+.detailCard {
+  background: #2a1147;
+  border: 2px solid #4f38ff;
+  border-radius: 26px;
+  box-shadow: inset 0 0 0 1px rgba(124, 92, 255, 0.08);
+}
+
+.leftPanel {
+  overflow: hidden;
+}
+
+.leftHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 24px;
+  border-bottom: 1px solid #4f38ff;
+}
+
+.leftHeader h2,
+.infoCard h2,
+.detailCard h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #5130a0;
+  border-radius: 20px;
+  padding: 0 14px;
+  width: 215px;
+  height: 34px;
+}
+
+.searchIcon {
+  font-size: 15px;
+  opacity: 0.9;
+}
+
+.searchBox input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: white;
+  font-size: 13px;
+}
+
+.searchBox input::placeholder {
+  color: #d8cef8;
+}
+
+.vesselGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding: 22px 12px 16px;
+}
+
+.vesselCard {
+  background: #2a1147;
+  border: 2px solid #4f38ff;
+  border-radius: 20px;
+  padding: 16px 18px 14px;
+  min-height: 105px;
+}
+
+.highlightCard {
+  background: linear-gradient(180deg, #5530e6 0%, #4b29d4 100%);
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.cardTop h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.badge {
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.inPort {
+  background: #2fae46;
+  color: #dfffe6;
+}
+
+.enRoute {
+  background: #4b8cff;
+  color: #ddebff;
+}
+
+.maintenance {
+  background: #d31d1d;
+  color: #ffe1e1;
+}
+
+.delayed {
+  background: #b8961d;
+  color: #fff2c9;
+}
+
+.location,
+.eta {
+  margin: 0;
+  font-size: 12px;
+  color: #d7cff7;
+  line-height: 1.5;
+}
+
+.eta {
+  margin-top: 2px;
+}
+
+.fuelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 18px;
+  font-size: 11px;
+  color: #e8e1ff;
+}
+
+.fuelBar {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.fuelFill {
+  height: 100%;
+  background: #1fff40;
+  border-radius: 999px;
+}
+
+.rightPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.infoCard {
+  padding: 20px 22px;
+  min-height: 190px;
+}
+
+.routeText {
+  margin: 34px 0 14px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #d7cff7;
+}
+
+.routeLoadRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.routeBar {
+  width: 100%;
+  height: 24px;
+  background: #d9d9d9;
+  overflow: hidden;
+}
+
+.routeFill {
+  width: 80%;
+  height: 100%;
+  background: linear-gradient(90deg, #5730e5 0%, #6f4fff 100%);
+}
+
+.routeMeta {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #f1ebff;
+}
+
+.routeMeta p {
+  margin: 2px 0;
+}
+
+.detailCard {
+  padding: 18px 22px 20px;
+  min-height: 205px;
+}
+
+.detailTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.smallBadge {
+  border: 1px solid #5e45ff;
+  padding: 4px 22px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #d8ceff;
+}
+
+.detailLocationBlock {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.bigPin {
+  font-size: 34px;
+  line-height: 1;
+}
+
+.detailLocation,
+.detailEta {
+  margin: 0;
+  color: #d7cff7;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: 0.8fr 1.4fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.statBox {
+  border: 1px solid #4f38ff;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.statBox span {
+  display: block;
+  font-size: 11px;
+  color: #c9bfff;
+  margin-bottom: 4px;
+}
+
+.statBox strong {
+  font-size: 12px;
+  color: white;
+}
+
+.detailButton {
+  width: 100%;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid #4f38ff;
+  background: transparent;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .vesselGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .nav {
+    display: none;
+  }
+}
