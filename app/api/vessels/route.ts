@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   try {
     const sql = neon(process.env.DATABASE_URL!);
-    const result = await sql`SELECT NOW() as now`;
+    const result = await sql`SELECT * FROM vessels`;
 
     return NextResponse.json({
       success: true,
