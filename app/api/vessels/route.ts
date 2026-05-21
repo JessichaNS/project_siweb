@@ -1,18 +1,38 @@
 import { neon } from '@neondatabase/serverless';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const sql = neon(process.env.DATABASE_URL!);
-    const result = await sql`SELECT * FROM vessels`;
+
+    const search = request.nextUrl.searchParams.get('search') || '';
+    const page = Number(request.nextUrl.searchParams.get('page') || '1');
+    const limit = Number(request.nextUrl.searchParams.get('limit') || '4');
+    const offset = (page - 1) * limit;
+
+    const vessels = await sql`
+      SELECT *
+      FROM vessels
+      WHERE name ILIKE ${'%' + search + '%'}
+      ORDER BY id ASC
+      LIMIT ${limit}
+      OFFSET ${offset}
+    `;
+
+    const countResult = await sql`
+      SELECT COUNT(*)::int AS total
+      FROM vessels
+      WHERE name ILIKE ${'%' + search + '%'}
+    `;
 
     return NextResponse.json({
-      success: true,
-      result,
+      vessels,
+      total: countResult[0].total,
+      page,
+      totalPages: Math.ceil(countResult[0].total / limit),
     });
   } catch (err) {
     return NextResponse.json({
-      success: false,
       error: String(err),
     });
   }
