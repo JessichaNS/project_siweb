@@ -1,8 +1,8 @@
 'use client';
 
-import styles from './fleetadm.module.css';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import styles from './fleetusr.module.css';
+import Link from 'next/link';
 
 type Vessel = {
   id: number;
@@ -12,8 +12,9 @@ type Vessel = {
   fuel: number;
 };
 
-export default function FleetAdminPage() {
+export default function FleetPage() {
   const [vessels, setVessels] = useState<Vessel[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -21,18 +22,23 @@ export default function FleetAdminPage() {
   useEffect(() => {
     const getVessels = async () => {
       try {
-      const res = await fetch(
-  `/api/vessels?search=${search}&page=${page}&limit=4`,
-  {
-    cache: 'force-cache',
-  }
-);
+        setLoading(true);
+
+        const res = await fetch(
+          `/api/vessels?search=${search}&page=${page}&limit=4`,
+          {
+            cache: 'no-store',
+          }
+        );
+
         const data = await res.json();
 
         setVessels(data.vessels || []);
         setTotalPages(data.totalPages || 1);
       } catch (error) {
         console.log(error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -65,7 +71,7 @@ export default function FleetAdminPage() {
             Dashboard
           </Link>
 
-          <Link href="/fleet_adm" className={`${styles.navItem} ${styles.active}`}>
+          <Link href="/fleet_usr" className={`${styles.navItem} ${styles.active}`}>
             Fleet
           </Link>
 
@@ -79,11 +85,13 @@ export default function FleetAdminPage() {
         </nav>
 
         <div className={styles.topRight}>
+          <div className={styles.notifyIcon}></div>
+
           <div className={styles.userBox}>
             <div className={styles.userIcon}>
               <img
                 src="/profile.png"
-                alt="Admin"
+                alt="Profile"
                 className={styles.userImage}
               />
             </div>
@@ -98,6 +106,7 @@ export default function FleetAdminPage() {
 
             <div className={styles.searchBox}>
               <span className={styles.searchIcon}>⌕</span>
+
               <input
                 type="text"
                 placeholder="Search"
@@ -111,19 +120,35 @@ export default function FleetAdminPage() {
           </div>
 
           <div className={styles.vesselGrid}>
-            {vessels.length === 0 ? (
+            {loading ? (
+              <p className={styles.loadingText}>Loading vessels...</p>
+            ) : vessels.length === 0 ? (
               <p className={styles.loadingText}>No vessels found</p>
             ) : (
               vessels.map((vessel) => (
-                <div key={vessel.id} className={styles.vesselCard}>
+                <div
+                  key={vessel.id}
+                  className={`${styles.vesselCard} ${
+                    vessel.status === 'En Route'
+                      ? styles.highlightCard
+                      : ''
+                  }`}
+                >
                   <div className={styles.cardTop}>
                     <h3>{vessel.name}</h3>
-                    <span className={`${styles.badge} ${getBadgeClass(vessel.status)}`}>
+
+                    <span
+                      className={`${styles.badge} ${getBadgeClass(
+                        vessel.status
+                      )}`}
+                    >
                       {vessel.status}
                     </span>
                   </div>
 
-                  <p className={styles.location}>📍 {vessel.location}</p>
+                  <p className={styles.location}>
+                    📍 {vessel.location}
+                  </p>
 
                   <div className={styles.fuelRow}>
                     <span>Fuel Level</span>
@@ -163,19 +188,60 @@ export default function FleetAdminPage() {
         </section>
 
         <aside className={styles.rightPanel}>
-          <div className={styles.emptyDetailCard}>
-            <p>
-              No Vessel Selected
-              <br />
-              Select a vessel to
-              <br />
-              view details
-            </p>
+          <div className={styles.infoCard}>
+            <h2>Route Overview</h2>
+            <p className={styles.routeText}>Tokyo → Los Angeles</p>
+
+            <div className={styles.routeLoadRow}>
+              <span>Cargo Load</span>
+              <span>80%</span>
+            </div>
+
+            <div className={styles.routeBar}>
+              <div className={styles.routeFill}></div>
+            </div>
+
+            <div className={styles.routeMeta}>
+              <p>Distance Remaining: 1,200 nm</p>
+              <p>ETA: April 7, 14:30</p>
+            </div>
           </div>
 
-          <div className={styles.bottomButtons}>
-            <button className={styles.actionButton}>Add Vessels</button>
-            <button className={styles.actionButton}>Edit Vessels</button>
+          <div className={styles.detailCard}>
+            <div className={styles.detailTop}>
+              <h2>MV Pacific Star</h2>
+              <span className={styles.smallBadge}>EN ROUTE</span>
+            </div>
+
+            <div className={styles.detailLocationBlock}>
+              <div className={styles.bigPin}>📍</div>
+
+              <div>
+                <p className={styles.detailLocation}>
+                  Pacific Ocean
+                </p>
+
+                <p className={styles.detailEta}>
+                  ETA: April 7, 14:30
+                </p>
+              </div>
+            </div>
+
+            <div className={styles.statsRow}>
+              <div className={styles.statBox}>
+                <span>Speed</span>
+                <strong>30 knots</strong>
+              </div>
+
+              <div className={styles.statBox}>
+                <span>Current Position</span>
+                <strong>0.0000 ° N, 160.0000 ° W</strong>
+              </div>
+            </div>
+
+            <button className={styles.detailButton}>
+              View Detail →
+            </button>
           </div>
         </aside>
       </section>

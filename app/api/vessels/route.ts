@@ -11,9 +11,14 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit;
 
     const vessels = await sql`
-      SELECT *
+      SELECT
+        id,
+        nama_kapal AS name,
+        tipe_kapal AS status,
+        'Indonesia' AS location,
+        80 AS fuel
       FROM vessels
-      WHERE name ILIKE ${'%' + search + '%'}
+      WHERE nama_kapal ILIKE ${'%' + search + '%'}
       ORDER BY id ASC
       LIMIT ${limit}
       OFFSET ${offset}
@@ -22,7 +27,7 @@ export async function GET(request: NextRequest) {
     const countResult = await sql`
       SELECT COUNT(*)::int AS total
       FROM vessels
-      WHERE name ILIKE ${'%' + search + '%'}
+      WHERE nama_kapal ILIKE ${'%' + search + '%'}
     `;
 
     return NextResponse.json({
@@ -33,6 +38,31 @@ export async function GET(request: NextRequest) {
     });
   } catch (err) {
     return NextResponse.json({
+      vessels: [],
+      total: 0,
+      page: 1,
+      totalPages: 1,
+      error: String(err),
+    });
+  }
+}
+export async function PUT(request: NextRequest) {
+  try {
+    const sql = neon(process.env.DATABASE_URL!);
+    const body = await request.json();
+
+    await sql`
+      UPDATE vessels
+      SET
+        nama_kapal = ${body.name},
+        tipe_kapal = ${body.status}
+      WHERE id = ${Number(body.id)}
+    `;
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    return NextResponse.json({
+      success: false,
       error: String(err),
     });
   }

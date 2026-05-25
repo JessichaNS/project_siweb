@@ -31,7 +31,7 @@ export default function DashboardPage() {
         </div>
 
         <nav className={styles.nav}>
-          <Link href="dashboard" className={`${styles.navItem} ${styles.active}`}>
+          <Link href="/admin/dashboard" className={`${styles.navItem} ${styles.active}`}>
             Dashboard
           </Link>
 

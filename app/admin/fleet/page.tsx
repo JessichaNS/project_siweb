@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import styles from './fleetusr.module.css';
+import styles from './fleetadm.module.css';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 type Vessel = {
   id: number;
@@ -12,30 +12,41 @@ type Vessel = {
   fuel: number;
 };
 
-export default function FleetPage() {
+export default function FleetAdminPage() {
   const [vessels, setVessels] = useState<Vessel[]>([]);
+  const [selectedVessel, setSelectedVessel] = useState<Vessel | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    status: '',
+  });
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const getVessels = async () => {
-      try {
-        const res = await fetch(
-          `/api/vessels?search=${search}&page=${page}&limit=4`,
-          {
-            cache: 'force-cache',
-          }
-        );
+  try {
+    setLoading(true);
 
-        const data = await res.json();
-
-        setVessels(data.vessels || []);
-        setTotalPages(data.totalPages || 1);
-      } catch (error) {
-        console.log(error);
+    const res = await fetch(
+      `/api/vessels?search=${search}&page=${page}&limit=4`,
+      {
+        cache: 'no-store',
       }
-    };
+    );
+
+    const data = await res.json();
+
+    setVessels(data.vessels || []);
+    setTotalPages(data.totalPages || 1);
+  } catch (error) {
+    console.log(error);
+  } finally {
+    setLoading(false);
+  }
+};
 
     getVessels();
   }, [search, page]);
@@ -62,12 +73,19 @@ export default function FleetPage() {
         </div>
 
         <nav className={styles.nav}>
-          <Link href="/dashboard" className={styles.navItem}>
+          <Link href="/admin/dashboard" className={styles.navItem}>
             Dashboard
           </Link>
 
-          <Link href="/fleet_usr" className={`${styles.navItem} ${styles.active}`}>
+          <Link
+            href="/admin/fleet"
+            className={`${styles.navItem} ${styles.active}`}
+          >
             Fleet
+          </Link>
+
+          <Link href="/admin/cargo" className={styles.navItem}>
+            Cargo
           </Link>
 
           <Link href="#" className={styles.navItem}>
@@ -80,13 +98,11 @@ export default function FleetPage() {
         </nav>
 
         <div className={styles.topRight}>
-          <div className={styles.notifyIcon}></div>
-
           <div className={styles.userBox}>
             <div className={styles.userIcon}>
               <img
                 src="/profile.png"
-                alt="Profile"
+                alt="Admin"
                 className={styles.userImage}
               />
             </div>
@@ -101,7 +117,6 @@ export default function FleetPage() {
 
             <div className={styles.searchBox}>
               <span className={styles.searchIcon}>⌕</span>
-
               <input
                 type="text"
                 placeholder="Search"
@@ -115,33 +130,27 @@ export default function FleetPage() {
           </div>
 
           <div className={styles.vesselGrid}>
-            {vessels.length === 0 ? (
+            {loading ? (
+              <p className={styles.loadingText}>Loading vessels...</p>
+            ) : vessels.length === 0 ? (
               <p className={styles.loadingText}>No vessels found</p>
             ) : (
               vessels.map((vessel) => (
-                <div
-                  key={vessel.id}
-                  className={`${styles.vesselCard} ${
-                    vessel.status === 'En Route'
-                      ? styles.highlightCard
-                      : ''
-                  }`}
-                >
+  <div
+    key={vessel.id}
+    className={`${styles.vesselCard}`}
+    onClick={() => {
+      setSelectedVessel(vessel);
+    }}
+  >
                   <div className={styles.cardTop}>
                     <h3>{vessel.name}</h3>
-
-                    <span
-                      className={`${styles.badge} ${getBadgeClass(
-                        vessel.status
-                      )}`}
-                    >
+                    <span className={`${styles.badge} ${getBadgeClass(vessel.status)}`}>
                       {vessel.status}
                     </span>
                   </div>
 
-                  <p className={styles.location}>
-                    📍 {vessel.location}
-                  </p>
+                  <p className={styles.location}>📍 {vessel.location}</p>
 
                   <div className={styles.fuelRow}>
                     <span>Fuel Level</span>
@@ -181,60 +190,35 @@ export default function FleetPage() {
         </section>
 
         <aside className={styles.rightPanel}>
-          <div className={styles.infoCard}>
-            <h2>Route Overview</h2>
-            <p className={styles.routeText}>Tokyo → Los Angeles</p>
+          {selectedVessel ? (
+  <div className={styles.emptyDetailCard}>
+    <h2>{selectedVessel.name}</h2>
+    <p>📍 {selectedVessel.location}</p>
+    <p>Status: {selectedVessel.status}</p>
+    <p>Fuel: {selectedVessel.fuel}%</p>
 
-            <div className={styles.routeLoadRow}>
-              <span>Cargo Load</span>
-              <span>80%</span>
-            </div>
+    <div className={styles.fuelBar}>
+      <div
+        className={styles.fuelFill}
+        style={{ width: `${selectedVessel.fuel}%` }}
+      />
+    </div>
+  </div>
+) : (
+  <div className={styles.emptyDetailCard}>
+    <p>
+      No Vessel Selected
+      <br />
+      Select a vessel to
+      <br />
+      view details
+    </p>
+  </div>
+)}
 
-            <div className={styles.routeBar}>
-              <div className={styles.routeFill}></div>
-            </div>
-
-            <div className={styles.routeMeta}>
-              <p>Distance Remaining: 1,200 nm</p>
-              <p>ETA: April 7, 14:30</p>
-            </div>
-          </div>
-
-          <div className={styles.detailCard}>
-            <div className={styles.detailTop}>
-              <h2>MV Pacific Star</h2>
-              <span className={styles.smallBadge}>EN ROUTE</span>
-            </div>
-
-            <div className={styles.detailLocationBlock}>
-              <div className={styles.bigPin}>📍</div>
-
-              <div>
-                <p className={styles.detailLocation}>
-                  Pacific Ocean
-                </p>
-
-                <p className={styles.detailEta}>
-                  ETA: April 7, 14:30
-                </p>
-              </div>
-            </div>
-
-            <div className={styles.statsRow}>
-              <div className={styles.statBox}>
-                <span>Speed</span>
-                <strong>30 knots</strong>
-              </div>
-
-              <div className={styles.statBox}>
-                <span>Current Position</span>
-                <strong>0.0000 ° N, 160.0000 ° W</strong>
-              </div>
-            </div>
-
-            <button className={styles.detailButton}>
-              View Detail →
-            </button>
+          <div className={styles.bottomButtons}>
+            <button className={styles.actionButton}>Add Vessels</button>
+            <button className={styles.actionButton}>Edit Vessels</button>
           </div>
         </aside>
       </section>
