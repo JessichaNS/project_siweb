@@ -58,34 +58,40 @@ export async function POST(request: NextRequest) {
     const sql = neon(process.env.DATABASE_URL!);
     const body = await request.json();
 
-    await sql`
-      INSERT INTO pengiriman (
-        no_resi,
-        tanggal_transaksi,
-        nama_penerima,
-        no_telepon,
-        kota_tujuan,
-        status,
-        tarif,
-        pelanggan_id,
-        vessel_id,
-        pelabuhan_asal_id,
-        pelabuhan_tujuan_id
-      )
-      VALUES (
-        ${body.no_resi},
-        ${body.tanggal_transaksi},
-        ${body.nama_penerima},
-        ${body.no_telepon},
-        ${body.kota_tujuan},
-        ${body.status},
-        ${Number(body.tarif)},
-        ${Number(body.pelanggan_id || 1)},
-        ${Number(body.vessel_id || 1)},
-        ${Number(body.pelabuhan_asal_id || 1)},
-        ${Number(body.pelabuhan_tujuan_id || 2)}
-      )
-    `;
+   await sql`
+  INSERT INTO pengiriman (
+    no_resi,
+    tanggal_transaksi,
+    nama_penerima,
+    no_telepon,
+    kota_asal,
+    kota_tujuan,
+    jenis_pengiriman,
+    status,
+    tarif,
+    catatan_barang,
+    pelanggan_id,
+    vessel_id,
+    pelabuhan_asal_id,
+    pelabuhan_tujuan_id
+  )
+  VALUES (
+    ${body.no_resi},
+    ${body.tanggal_transaksi},
+    ${body.nama_penerima},
+    ${body.no_telepon},
+    ${body.kota_asal},
+    ${body.kota_tujuan},
+    ${body.jenis_pengiriman},
+    ${body.status},
+    ${Number(body.tarif)},
+    ${body.catatan_barang},
+    ${Number(body.pelanggan_id)},
+    ${Number(body.vessel_id)},
+    ${Number(body.pelabuhan_asal_id)},
+    ${Number(body.pelabuhan_tujuan_id)}
+  )
+`;
 
     return NextResponse.json({ success: true });
   } catch (err) {
@@ -104,15 +110,23 @@ export async function PUT(request: NextRequest) {
     await sql`
       UPDATE pengiriman
       SET
+        no_resi = ${body.no_resi},
+        nama_penerima = ${body.nama_penerima},
+        kota_tujuan = ${body.kota_tujuan},
         status = ${body.status},
         tarif = ${Number(body.tarif)}
       WHERE id = ${Number(body.id)}
     `;
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+    });
   } catch (err) {
     return NextResponse.json(
-      { success: false, error: String(err) },
+      {
+        success: false,
+        error: String(err),
+      },
       { status: 500 }
     );
   }

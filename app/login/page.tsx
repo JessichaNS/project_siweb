@@ -20,7 +20,7 @@ export default function LoginPage() {
     if (user === "admin123" && pass === "admin321") {
       localStorage.setItem("role", "admin");
       localStorage.setItem("user", user);
-      router.push("/dashboard");
+      router.push('/admin/dashboard')
       return;
     }
 

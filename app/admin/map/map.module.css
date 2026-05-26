@@ -1,0 +1,286 @@
+.container {
+  min-height: 100vh;
+  background: #090012;
+  color: white;
+}
+
+.topbar {
+  height: 72px;
+  background: #2a1044;
+  display: flex;
+  align-items: center;
+  gap: 34px;
+  padding: 0 28px;
+  border-bottom: 1px solid #5f37ff;
+}
+
+.logo {
+  width: 48px;
+  height: 48px;
+}
+
+.nav {
+  display: flex;
+  gap: 36px;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav a {
+  color: white;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.active {
+  background: #6d4cff;
+  padding: 12px 32px;
+  border-radius: 16px;
+}
+
+.editButton {
+  background: #6d4cff;
+  color: white;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.profile {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 20px;
+  padding: 22px;
+}
+
+.sidebar {
+  border: 2px solid #5f37ff;
+  border-radius: 22px;
+  background: #25103d;
+  padding: 22px;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.filters button {
+  background: #4b2a8c;
+  border: 1px solid #8d72ff;
+  color: white;
+  border-radius: 14px;
+  padding: 6px 14px;
+}
+
+.search {
+  width: 100%;
+  background: #55319d;
+  color: white;
+  border: none;
+  border-radius: 14px;
+  padding: 10px;
+  margin-bottom: 18px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.vesselCard {
+  border: 2px solid #5f37ff;
+  border-radius: 18px;
+  padding: 16px;
+  cursor: pointer;
+  background: #2c1248;
+}
+
+.selected {
+  background: #5229e8;
+}
+
+.vesselCard h3 {
+  margin: 0 0 8px;
+}
+
+.vesselCard span {
+  float: right;
+  background: #2e7dd1;
+  padding: 5px 12px;
+  border-radius: 14px;
+  font-size: 12px;
+}
+
+.mapArea {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.mapBox {
+  position: relative;
+  border: 2px solid #5f37ff;
+  border-radius: 22px;
+  overflow: hidden;
+  height: 460px;
+  background: black;
+}
+
+.mapImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pinRed,
+.pinYellow,
+.pinGreen,
+.pinBlue {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+
+.pinRed {
+  right: 12%;
+  top: 42%;
+  background: red;
+}
+
+.pinYellow {
+  right: 9%;
+  top: 55%;
+  background: orange;
+}
+
+.pinGreen {
+  left: 20%;
+  top: 62%;
+  background: lime;
+}
+
+.pinBlue {
+  left: 8%;
+  top: 70%;
+  background: #45aaff;
+}
+
+.infoBox {
+  border: 2px solid #5f37ff;
+  border-radius: 18px;
+  background: #25103d;
+  padding: 18px 28px;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 30px;
+}
+
+.nav {
+  display: flex;
+  gap: 36px;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+}
+
+.navItem {
+  color: white;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 18px;
+  padding: 12px 20px;
+  border-radius: 16px;
+  display: inline-block;
+  position: relative;
+  z-index: 20;
+}
+
+.active {
+  background: #6d4cff;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 0, 32, 0.7);
+  backdrop-filter: blur(3px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 70px;
+  z-index: 999;
+}
+
+.statusModal {
+  width: 520px;
+  background: #24103d;
+  border: 2px solid #5f37ff;
+  border-radius: 14px;
+  padding: 28px 42px;
+  color: white;
+}
+
+.statusModal h2 {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.statusModal label {
+  display: block;
+  font-weight: 700;
+  font-size: 14px;
+  margin: 18px 0 8px;
+}
+
+.currentStatus {
+  background: #5329dd;
+  padding: 16px 22px;
+  border-radius: 22px;
+  font-size: 13px;
+}
+
+.statusInput {
+  width: 100%;
+  background: #5329dd;
+  border: none;
+  border-radius: 22px;
+  padding: 18px 22px;
+  color: white;
+  outline: none;
+}
+
+.statusInput::placeholder {
+  color: #d8ccff;
+}
+
+.saveStatus {
+  display: block;
+  margin-left: auto;
+  margin-top: 22px;
+  background: #7b4fd8;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 12px 42px;
+  font-weight: 700;
+  cursor: pointer;
+}

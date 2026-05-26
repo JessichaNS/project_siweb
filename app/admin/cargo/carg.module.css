@@ -185,3 +185,55 @@
   justify-content: space-between;
   align-items: center;
 }
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 0, 20, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99;
+}
+
+.addModal {
+  width: 360px;
+  background: #2a0d45;
+  border: 2px solid #5f37ff;
+  border-radius: 18px;
+  padding: 24px;
+  color: white;
+}
+
+.addModal h2 {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.addModal input,
+.addModal select {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: #1b082e;
+  color: white;
+  border: 1px solid #5f37ff;
+  border-radius: 10px;
+}
+
+.modalButtons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 18px;
+}
+
+.modalButtons button {
+  width: 120px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 2px solid #5f37ff;
+  background: #2a0d45;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}

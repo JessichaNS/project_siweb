@@ -39,9 +39,9 @@ export default function DashboardPage() {
             Fleet
           </Link>
 
-          <Link href="#" className={styles.navItem}>
-            Map
-          </Link>
+<Link href="/admin/map" className={styles.navItem}>
+  Map
+</Link>
 
           <Link href="#" className={styles.navItem}>
             Analytic
