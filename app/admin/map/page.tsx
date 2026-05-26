@@ -45,7 +45,7 @@ export default function AdminMapPage() {
   <Link href="/admin/fleet" className={styles.navItem}>Fleet</Link>
   <Link href="/admin/cargo" className={styles.navItem}>Cargo</Link>
   <Link href="/admin/map" className={`${styles.navItem} ${styles.active}`}>Map</Link>
-  <Link href="#" className={styles.navItem}>Analytic</Link>
+  {/* <Link href="#" className={styles.navItem}>Analytic</Link> */}
 </nav>
 
         <button

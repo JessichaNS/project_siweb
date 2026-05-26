@@ -91,7 +91,7 @@ useEffect(() => {
           <Link href="/admin/fleet" className={styles.navItem}>Fleet</Link>
           <Link href="/admin/cargo" className={`${styles.navItem} ${styles.active}`}>Cargo</Link>
           <Link href="/admin/map" className={styles.navItem}>Map</Link>
-          <Link href="#" className={styles.navItem}>Analytic</Link>
+          {/* <Link href="#" className={styles.navItem}>Analytic</Link> */}
         </nav>
 
         <img src="/profile.png" alt="Admin" className={styles.profile} />
@@ -112,7 +112,7 @@ useEffect(() => {
 
           <div className={styles.cargoGrid}>
             {cargo.length === 0 ? (
-              <p className={styles.empty}>No cargo found</p>
+              <p className={styles.empty}>Loading Cargo</p>
             ) : (
               cargo.map((item) => (
                 <div

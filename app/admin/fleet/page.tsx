@@ -92,9 +92,9 @@ export default function FleetAdminPage() {
   Map
 </Link>
 
-          <Link href="#" className={styles.navItem}>
+          {/* <Link href="#" className={styles.navItem}>
             Analytic
-          </Link>
+          </Link> */}
         </nav>
 
         <div className={styles.topRight}>

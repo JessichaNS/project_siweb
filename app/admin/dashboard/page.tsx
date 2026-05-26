@@ -35,17 +35,21 @@ export default function DashboardPage() {
             Dashboard
           </Link>
 
-          <Link href={fleetLink} className={styles.navItem}>
+          <Link href="/admin/fleet" className={styles.navItem}>
             Fleet
           </Link>
 
-<Link href="/admin/map" className={styles.navItem}>
-  Map
-</Link>
-
-          <Link href="#" className={styles.navItem}>
-            Analytic
+          <Link href="/admin/cargo" className={styles.navItem}>
+            Cargo
           </Link>
+
+          <Link href="/admin/map" className={styles.navItem}>
+            Map
+          </Link>
+
+          {/* <Link href="#" className={styles.navItem}>
+            Analytic
+          </Link> */}
         </nav>
 
         <div className={styles.userBox}>

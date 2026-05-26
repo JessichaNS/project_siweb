@@ -11,20 +11,22 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit;
 
     const data = await sql`
-      SELECT
-        pengiriman.*,
-        pelanggan.nama_customer AS nama_pengirim
-      FROM pengiriman
-      JOIN pelanggan
-      ON pengiriman.pelanggan_id = pelanggan.id
-      WHERE
-        pengiriman.no_resi ILIKE ${'%' + search + '%'}
-        OR pelanggan.nama_customer ILIKE ${'%' + search + '%'}
-        OR pengiriman.nama_penerima ILIKE ${'%' + search + '%'}
-      ORDER BY pengiriman.id DESC
-      LIMIT ${limit}
-      OFFSET ${offset}
-    `;
+  SELECT
+    pengiriman.*,
+    pelanggan.nama_customer AS nama_pengirim,
+    pelanggan.telepon AS no_telepon,
+    pelanggan.kota_asal AS kota_asal
+  FROM pengiriman
+  JOIN pelanggan
+  ON pengiriman.pelanggan_id = pelanggan.id
+  WHERE
+    pengiriman.no_resi ILIKE ${'%' + search + '%'}
+    OR pelanggan.nama_customer ILIKE ${'%' + search + '%'}
+    OR pengiriman.nama_penerima ILIKE ${'%' + search + '%'}
+  ORDER BY pengiriman.id DESC
+  LIMIT ${limit}
+  OFFSET ${offset}
+`;
 
     const countResult = await sql`
       SELECT COUNT(*)::int AS total
@@ -58,40 +60,36 @@ export async function POST(request: NextRequest) {
     const sql = neon(process.env.DATABASE_URL!);
     const body = await request.json();
 
-   await sql`
-  INSERT INTO pengiriman (
-    no_resi,
-    tanggal_transaksi,
-    nama_penerima,
-    no_telepon,
-    kota_asal,
-    kota_tujuan,
-    jenis_pengiriman,
-    status,
-    tarif,
-    catatan_barang,
-    pelanggan_id,
-    vessel_id,
-    pelabuhan_asal_id,
-    pelabuhan_tujuan_id
-  )
-  VALUES (
-    ${body.no_resi},
-    ${body.tanggal_transaksi},
-    ${body.nama_penerima},
-    ${body.no_telepon},
-    ${body.kota_asal},
-    ${body.kota_tujuan},
-    ${body.jenis_pengiriman},
-    ${body.status},
-    ${Number(body.tarif)},
-    ${body.catatan_barang},
-    ${Number(body.pelanggan_id)},
-    ${Number(body.vessel_id)},
-    ${Number(body.pelabuhan_asal_id)},
-    ${Number(body.pelabuhan_tujuan_id)}
-  )
-`;
+    await sql`
+      INSERT INTO pengiriman (
+        no_resi,
+        pelanggan_id,
+        vessel_id,
+        pelabuhan_asal_id,
+        pelabuhan_tujuan_id,
+        nama_penerima,
+        kota_tujuan,
+        tanggal_transaksi,
+        jenis_pengiriman,
+        status,
+        tarif,
+        catatan_tambahan
+      )
+      VALUES (
+        ${body.no_resi},
+        ${Number(body.pelanggan_id || 1)},
+        ${Number(body.vessel_id || 1)},
+        ${Number(body.pelabuhan_asal_id || 1)},
+        ${Number(body.pelabuhan_tujuan_id || 2)},
+        ${body.nama_penerima},
+        ${body.kota_tujuan},
+        ${body.tanggal_transaksi},
+        ${body.jenis_pengiriman},
+        ${body.status},
+        ${Number(body.tarif)},
+        ${body.catatan_barang || body.catatan_tambahan || ''}
+      )
+    `;
 
     return NextResponse.json({ success: true });
   } catch (err) {
@@ -113,20 +111,17 @@ export async function PUT(request: NextRequest) {
         no_resi = ${body.no_resi},
         nama_penerima = ${body.nama_penerima},
         kota_tujuan = ${body.kota_tujuan},
+        jenis_pengiriman = ${body.jenis_pengiriman},
         status = ${body.status},
-        tarif = ${Number(body.tarif)}
+        tarif = ${Number(body.tarif)},
+        catatan_tambahan = ${body.catatan_barang || ''}
       WHERE id = ${Number(body.id)}
     `;
 
-    return NextResponse.json({
-      success: true,
-    });
+    return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json(
-      {
-        success: false,
-        error: String(err),
-      },
+      { success: false, error: String(err) },
       { status: 500 }
     );
   }
