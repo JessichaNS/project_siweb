@@ -1,0 +1,47 @@
+.hero {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.bg {
+  object-fit: cover;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 20, 50, 0.6);
+  pointer-events: none;
+}
+
+.content {
+  position: absolute;
+  right: 60px;
+  bottom: 60px;
+  left: auto;
+  top: auto;
+  transform: none;
+  color: white;
+  z-index: 2;
+  text-align: right;
+  max-width: 520px;
+}
+
+.title {
+  font-size: 48px;
+}
+
+.subtitle {
+  margin: 20px 0;
+}
+
+.btn {
+  display: inline-block;
+  background: #4f46e5;
+  padding: 12px 24px;
+  border-radius: 20px;
+  text-decoration: none;
+  color: white;
+}
