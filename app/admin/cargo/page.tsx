@@ -79,17 +79,10 @@ useEffect(() => {
     }
   }, []);
 
-  if (isAdmin === null) {
-    return null;
-  }
-
-  if (!isAdmin) {
-    notFound();
-  }
-
   useEffect(() => {
-  getCargo();
-}, [search, page]);
+    if (isAdmin !== true) return;
+    getCargo();
+  }, [search, page, isAdmin]);
 
   const deleteCargo = async (id: number) => {
     await fetch(`/api/pengiriman?id=${id}`, {
@@ -99,6 +92,14 @@ useEffect(() => {
     setSelected(null);
     getCargo();
   };
+
+  if (isAdmin === null) {
+    return null;
+  }
+
+  if (!isAdmin) {
+    notFound();
+  }
 
   return (
     <main className={styles.container}>

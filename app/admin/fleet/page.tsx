@@ -36,15 +36,9 @@ export default function FleetAdminPage() {
     }
   }, []);
 
-  if (isAdmin === null) {
-    return null;
-  }
-
-  if (!isAdmin) {
-    notFound();
-  }
-
   useEffect(() => {
+    if (isAdmin !== true) return;
+
     const getVessels = async () => {
   try {
     setLoading(true);
@@ -68,7 +62,7 @@ export default function FleetAdminPage() {
 };
 
     getVessels();
-  }, [search, page]);
+  }, [search, page, isAdmin]);
 
   const getBadgeClass = (status: string) => {
     if (status === 'In Port') return styles.inPort;
@@ -77,6 +71,14 @@ export default function FleetAdminPage() {
     if (status === 'Delayed') return styles.delayed;
     return '';
   };
+
+  if (isAdmin === null) {
+    return null;
+  }
+
+  if (!isAdmin) {
+    notFound();
+  }
 
   return (
     <main className={styles.container}>

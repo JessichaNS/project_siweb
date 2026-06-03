@@ -30,15 +30,9 @@ export default function AdminMapPage() {
     }
   }, []);
 
-  if (isAdmin === null) {
-    return null;
-  }
-
-  if (!isAdmin) {
-    notFound();
-  }
-
   useEffect(() => {
+    if (isAdmin !== true) return;
+
     async function getVessels() {
       const res = await fetch('/api/map', { cache: 'no-store' });
       const data = await res.json();
@@ -48,11 +42,19 @@ export default function AdminMapPage() {
     }
 
     getVessels();
-  }, []);
+  }, [isAdmin]);
 
   const filtered = vessels.filter((vessel) =>
     vessel.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (isAdmin === null) {
+    return null;
+  }
+
+  if (!isAdmin) {
+    notFound();
+  }
 
   return (
     <main className={styles.container}>
