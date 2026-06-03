@@ -2,10 +2,13 @@
 
 import styles from './dash.module.css';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [fleetLink, setFleetLink] = useState("/fleet_usr");
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   useEffect(() => {
     const role = localStorage.getItem("role");
@@ -16,6 +19,14 @@ export default function DashboardPage() {
       setFleetLink("/fleet_usr");
     }
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('role');
+    sessionStorage.clear();
+    router.push('/login');
+  };
 
   return (
     <main className={styles.container}>
@@ -47,13 +58,17 @@ export default function DashboardPage() {
             Map
           </Link>
 
-          {/* <Link href="#" className={styles.navItem}>
+          <Link href="/admin/analytic" className={styles.navItem}>
             Analytic
-          </Link> */}
+          </Link>
         </nav>
 
         <div className={styles.userBox}>
-          <div className={styles.userIcon}>
+          <div 
+            className={styles.userIcon}
+            onClick={() => setIsLogoutModalOpen(true)}
+            style={{ cursor: 'pointer' }}
+          >
             <img
               src="/profile.png"
               alt="User"
@@ -294,6 +309,30 @@ export default function DashboardPage() {
           </div>
         </div>
       </section>
+
+      {/* Logout Confirmation Modal */}
+      {isLogoutModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setIsLogoutModalOpen(false)}>
+          <div className={styles.logoutModal} onClick={(e) => e.stopPropagation()}>
+            <h2>Konfirmasi Logout</h2>
+            <p>Apakah Anda yakin ingin keluar?</p>
+            <div className={styles.logoutButtons}>
+              <button 
+                className={styles.cancelLogout}
+                onClick={() => setIsLogoutModalOpen(false)}
+              >
+                Tidak
+              </button>
+              <button 
+                className={styles.confirmLogout}
+                onClick={handleLogout}
+              >
+                Ya, Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

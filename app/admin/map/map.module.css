@@ -2,41 +2,91 @@
   min-height: 100vh;
   background: #090012;
   color: white;
+  padding: 10px 14px 12px;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 .topbar {
-  height: 72px;
-  background: #2a1044;
+  height: 64px;
   display: flex;
   align-items: center;
-  gap: 34px;
-  padding: 0 28px;
-  border-bottom: 1px solid #5f37ff;
+  justify-content: space-between;
+  background: #24103f;
+  border-bottom: 1px solid rgba(140, 109, 255, 0.35);
+  padding: 0 18px;
+  margin: -10px -14px 14px;
+}
+
+.logoBox {
+  display: flex;
+  align-items: center;
 }
 
 .logo {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoImage {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
 }
 
 .nav {
   display: flex;
-  gap: 36px;
-  flex: 1;
-  justify-content: center;
+  align-items: center;
+  gap: 18px;
 }
 
-.nav a {
+.navItem {
   color: white;
   text-decoration: none;
-  font-weight: 700;
   font-size: 18px;
+  font-weight: 700;
+  padding: 12px 28px;
+  border-radius: 18px;
+  display: inline-block;
 }
 
 .active {
   background: #6d4cff;
-  padding: 12px 32px;
-  border-radius: 16px;
+  box-shadow: 0 0 14px rgba(110, 91, 255, 0.35);
+}
+
+.userBox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-left: 18px;
+  border-left: 1px solid rgba(154, 123, 255, 0.45);
+  font-weight: 700;
+}
+
+.userIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #6e5bff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.userImage {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.rightNavSection {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .editButton {
@@ -46,12 +96,6 @@
   padding: 14px 24px;
   border-radius: 12px;
   font-weight: 700;
-}
-
-.profile {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
 }
 
 .content {
@@ -145,38 +189,38 @@
   object-fit: cover;
 }
 
-.pinRed,
-.pinYellow,
-.pinGreen,
-.pinBlue {
+.radarPin {
   position: absolute;
   width: 18px;
   height: 18px;
   border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 14px currentColor;
+  transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-.pinRed {
-  right: 12%;
-  top: 42%;
-  background: red;
+.radarPinRing {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  opacity: 0;
+  animation: radarPulse 1.8s infinite ease-out;
+  pointer-events: none;
 }
 
-.pinYellow {
-  right: 9%;
-  top: 55%;
-  background: orange;
-}
-
-.pinGreen {
-  left: 20%;
-  top: 62%;
-  background: lime;
-}
-
-.pinBlue {
-  left: 8%;
-  top: 70%;
-  background: #45aaff;
+@keyframes radarPulse {
+  0% {
+    transform: scale(0.3);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
 }
 
 .infoBox {
@@ -186,37 +230,74 @@
   padding: 18px 28px;
 }
 
+.infoBox h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
 .infoGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px 30px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
 }
 
-.nav {
+.infoCard {
+  background: rgba(95, 55, 255, 0.1);
+  border: 1px solid rgba(95, 55, 255, 0.3);
+  border-radius: 12px;
+  padding: 14px 18px;
   display: flex;
-  gap: 36px;
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  z-index: 10;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.25s ease-in-out;
 }
 
-.navItem {
-  color: white;
-  text-decoration: none;
+.infoCard:hover {
+  transform: translateY(-2px);
+  background: rgba(95, 55, 255, 0.18);
+  border-color: rgba(95, 55, 255, 0.6);
+  box-shadow: 0 4px 15px rgba(95, 55, 255, 0.15);
+}
+
+.infoLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #a894ff;
+  letter-spacing: 0.8px;
+  font-weight: 600;
+}
+
+.infoValue {
+  font-size: 15px;
   font-weight: 700;
-  font-size: 18px;
-  padding: 12px 20px;
-  border-radius: 16px;
-  display: inline-block;
-  position: relative;
-  z-index: 20;
+  color: #ffffff;
 }
 
-.active {
-  background: #6d4cff;
+.fuelContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
 }
+
+.miniFuelBar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.miniFuelFill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff4757 0%, #ffa502 50%, #2ed573 100%);
+  border-radius: 3px;
+}
+
+
 
 .modalOverlay {
   position: fixed;
@@ -283,4 +364,177 @@
   padding: 12px 42px;
   font-weight: 700;
   cursor: pointer;
+}
+/* Toast Notification */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #2fae46;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 18px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 1100;
+  animation: slideInRight 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.toastError {
+  background: #d31d1d;
+}
+
+.toastSuccess {
+  background: #2fae46;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toastClose {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+}
+
+.toastClose:hover {
+  opacity: 1;
+}
+/* Logout Modal */
+.logoutModal {
+  width: 380px;
+  background: #24103d;
+  border: 2px solid #5f37ff;
+  border-radius: 20px;
+  padding: 28px 32px;
+  color: white;
+  text-align: center;
+}
+
+.logoutModal h2 {
+  margin: 0 0 16px 0;
+  font-size: 22px;
+  color: #ffffff;
+}
+
+.logoutModal p {
+  margin: 0 0 28px 0;
+  font-size: 15px;
+  color: #cfc2ff;
+}
+
+.logoutButtons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.cancelLogout {
+  background: transparent;
+  border: 1px solid #5f37ff;
+  color: #a07eff;
+  padding: 10px 24px;
+  border-radius: 40px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelLogout:hover {
+  background: rgba(95, 55, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.confirmLogout {
+  background: #d31d1d;
+  border: none;
+  color: white;
+  padding: 10px 24px;
+  border-radius: 40px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.confirmLogout:hover {
+  background: #b01818;
+  transform: translateY(-1px);
+}
+
+/* Toast Notification */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #2fae46;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 18px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 1100;
+  animation: slideInRight 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.toastError {
+  background: #d31d1d;
+}
+
+.toastSuccess {
+  background: #2fae46;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toastClose {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+}
+
+.toastClose:hover {
+  opacity: 1;
 }
