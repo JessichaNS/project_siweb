@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import styles from './map.module.css';
+import { notFound } from 'next/navigation';
 
 type Vessel = {
   id: number;
@@ -13,11 +14,29 @@ type Vessel = {
 };
 
 export default function AdminMapPage() {
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [vessels, setVessels] = useState<Vessel[]>([]);
   const [selected, setSelected] = useState<Vessel | null>(null);
   const [search, setSearch] = useState('');
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [newStatus, setNewStatus] = useState('');
+
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    if (role === "admin") {
+      setIsAdmin(true);
+    } else {
+      setIsAdmin(false);
+    }
+  }, []);
+
+  if (isAdmin === null) {
+    return null;
+  }
+
+  if (!isAdmin) {
+    notFound();
+  }
 
   useEffect(() => {
     async function getVessels() {

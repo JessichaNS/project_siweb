@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import styles from './carg.module.css';
+import { notFound } from 'next/navigation';
 
 type Cargo = {
   id: number;
@@ -19,6 +20,7 @@ type Cargo = {
 };
 
 export default function CargoAdminPage() {
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [cargo, setCargo] = useState<Cargo[]>([]);
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Cargo | null>(null);
@@ -69,6 +71,23 @@ const getCargo = async () => {
 };
 
 useEffect(() => {
+    const role = localStorage.getItem("role");
+    if (role === "admin") {
+      setIsAdmin(true);
+    } else {
+      setIsAdmin(false);
+    }
+  }, []);
+
+  if (isAdmin === null) {
+    return null;
+  }
+
+  if (!isAdmin) {
+    notFound();
+  }
+
+  useEffect(() => {
   getCargo();
 }, [search, page]);
 

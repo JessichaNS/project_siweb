@@ -3,19 +3,31 @@
 import styles from './dash.module.css';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { notFound } from 'next/navigation';
 
 export default function DashboardPage() {
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [fleetLink, setFleetLink] = useState("/fleet_usr");
 
   useEffect(() => {
     const role = localStorage.getItem("role");
 
     if (role === "admin") {
+      setIsAdmin(true);
       setFleetLink("/fleet_adm");
     } else {
+      setIsAdmin(false);
       setFleetLink("/fleet_usr");
     }
   }, []);
+
+  if (isAdmin === null) {
+    return null;
+  }
+
+  if (!isAdmin) {
+    notFound();
+  }
 
   return (
     <main className={styles.container}>

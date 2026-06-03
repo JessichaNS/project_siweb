@@ -3,6 +3,7 @@
 import styles from './fleetadm.module.css';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { notFound } from 'next/navigation';
 
 type Vessel = {
   id: number;
@@ -13,6 +14,7 @@ type Vessel = {
 };
 
 export default function FleetAdminPage() {
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [vessels, setVessels] = useState<Vessel[]>([]);
   const [selectedVessel, setSelectedVessel] = useState<Vessel | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -24,6 +26,23 @@ export default function FleetAdminPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    if (role === "admin") {
+      setIsAdmin(true);
+    } else {
+      setIsAdmin(false);
+    }
+  }, []);
+
+  if (isAdmin === null) {
+    return null;
+  }
+
+  if (!isAdmin) {
+    notFound();
+  }
 
   useEffect(() => {
     const getVessels = async () => {
