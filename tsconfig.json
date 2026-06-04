@@ -15,7 +15,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "incremental": true,
     "plugins": [
       {
@@ -36,8 +36,9 @@
     ".next/types/**/*.ts",
     "app/lib/placeholder-data.ts",
     "scripts/seed.js",
-    ".next/dev/types/**/*.ts"
-, "app/admin/dashboard/page.txs"  ],
+    ".next/dev/types/**/*.ts",
+    "app/admin/dashboard/page.txs"
+  ],
   "exclude": [
     "node_modules"
   ]
