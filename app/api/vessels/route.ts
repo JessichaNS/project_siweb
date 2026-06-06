@@ -1,10 +1,29 @@
-import { neon } from '@neondatabase/serverless';
+import postgres from 'postgres';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
-  try {
-    const sql = neon(process.env.DATABASE_URL!);
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
+function getSql() {
+  const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL atau POSTGRES_URL belum diisi di .env.local');
+  }
+
+  const isLocalDatabase =
+    databaseUrl.includes('localhost') || databaseUrl.includes('127.0.0.1');
+
+  return postgres(databaseUrl, {
+    ssl: isLocalDatabase ? false : 'require',
+    max: 1,
+  });
+}
+
+export async function GET(request: NextRequest) {
+  const sql = getSql();
+
+  try {
     const search = request.nextUrl.searchParams.get('search') || '';
     const page = Number(request.nextUrl.searchParams.get('page') || '1');
     const limit = Number(request.nextUrl.searchParams.get('limit') || '4');
@@ -14,7 +33,8 @@ export async function GET(request: NextRequest) {
       SELECT
         id,
         nama_kapal AS name,
-        tipe_kapal AS status,
+        tipe_kapal AS type,
+        status_kapal AS status,
         'Indonesia' AS location,
         80 AS fuel
       FROM vessels
@@ -30,40 +50,98 @@ export async function GET(request: NextRequest) {
       WHERE nama_kapal ILIKE ${'%' + search + '%'}
     `;
 
+    const total = Number(countResult[0]?.total || 0);
+
     return NextResponse.json({
       vessels,
-      total: countResult[0].total,
+      total,
       page,
-      totalPages: Math.ceil(countResult[0].total / limit),
+      totalPages: Math.max(1, Math.ceil(total / limit)),
     });
   } catch (err) {
-    return NextResponse.json({
-      vessels: [],
-      total: 0,
-      page: 1,
-      totalPages: 1,
-      error: String(err),
-    });
+    return NextResponse.json(
+      {
+        vessels: [],
+        total: 0,
+        page: 1,
+        totalPages: 1,
+        error: err instanceof Error ? err.message : String(err),
+      },
+      { status: 500 }
+    );
+  } finally {
+    await sql.end();
   }
 }
-export async function PUT(request: NextRequest) {
+
+export async function POST(request: NextRequest) {
+  const sql = getSql();
+
   try {
-    const sql = neon(process.env.DATABASE_URL!);
     const body = await request.json();
 
     await sql`
-      UPDATE vessels
-      SET
-        nama_kapal = ${body.name},
-        tipe_kapal = ${body.status}
-      WHERE id = ${Number(body.id)}
-    `;
+  INSERT INTO vessels (
+    nama_kapal,
+    tipe_kapal,
+    status_kapal
+  )
+  VALUES (
+    ${body.name},
+    ${body.type || 'Cargo'},
+    ${body.status || 'In Port'}
+  )
+`;
 
-    return NextResponse.json({ success: true });
-  } catch (err) {
     return NextResponse.json({
-      success: false,
-      error: String(err),
+      success: true,
+      message: 'Vessel berhasil ditambahkan',
     });
+  } catch (err) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      },
+      { status: 500 }
+    );
+  } finally {
+    await sql.end();
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  const sql = getSql();
+
+  try {
+    const body = await request.json();
+
+    await sql`
+  INSERT INTO vessels (
+    nama_kapal,
+    tipe_kapal,
+    status_kapal
+  )
+  VALUES (
+    ${body.name},
+    ${body.type || 'Cargo'},
+    ${body.status || 'In Port'}
+  )
+`; 
+
+    return NextResponse.json({
+      success: true,
+      message: 'Vessel berhasil diupdate',
+    });
+  } catch (err) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      },
+      { status: 500 }
+    );
+  } finally {
+    await sql.end();
   }
 }
