@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
   )
   VALUES (
     ${body.name},
-    ${body.type || 'Cargo'},
+    ${body.type || 'cargo', 'passenger', 'tanker', 'container'},
     ${body.status || 'In Port'}
   )
 `;
@@ -124,7 +124,7 @@ export async function PUT(request: NextRequest) {
   )
   VALUES (
     ${body.name},
-    ${body.type || 'Cargo'},
+    ${body.type || 'cargo', 'passenger', 'tanker', 'container'},
     ${body.status || 'In Port'}
   )
 `; 
