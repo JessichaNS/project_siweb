@@ -219,17 +219,17 @@ export default function UserMapPage() {
 
           <div className={styles.fleetStats}>
             <div className={styles.statItem}>
-              <span>Total Vessels</span>
-              <strong>{vessels.length}</strong>
-            </div>
-            <div className={styles.statItem}>
-              <span>En Route</span>
-              <strong>{vessels.filter(v => v.status === 'En Route').length}</strong>
-            </div>
-            <div className={styles.statItem}>
-              <span>In Port</span>
-              <strong>{vessels.filter(v => v.status === 'In Port').length}</strong>
-            </div>
+  <span>En Route</span>
+  <strong>{vessels.filter(v => v.status === 'En Route').length}</strong>
+</div>
+<div className={styles.statItem}>
+  <span>In Port</span>
+  <strong>{vessels.filter(v => v.status === 'In Port').length}</strong>
+</div>
+<div className={styles.statItem}>
+  <span>Maintenance</span>
+  <strong>{vessels.filter(v => v.status === 'Maintenance').length}</strong>
+</div>
           </div>
         </aside>
 
