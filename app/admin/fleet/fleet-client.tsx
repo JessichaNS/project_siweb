@@ -4,6 +4,7 @@ import styles from './fleetadm.module.css';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 type Vessel = {
   id: number;
@@ -158,7 +159,7 @@ export default function FleetAdminPage() {
   };
 
   return (
-    <main className={styles.container}>
+   <main className={styles.container}>
       <header className={styles.topbar}>
         <div className={styles.logoBox}>
           <div className={styles.logo}>
@@ -168,13 +169,17 @@ export default function FleetAdminPage() {
 
         <nav className={styles.nav}>
           <Link href="/admin/dashboard" className={styles.navItem}>Dashboard</Link>
-          <Link href="/admin/fleet" className={`${styles.navItem} ${styles.active}`}>Fleet</Link>
+          <Link href="/admin/fleet" className={styles.navItem}>Fleet</Link>
           <Link href="/admin/cargo" className={styles.navItem}>Cargo</Link>
-          <Link href="/admin/map" className={styles.navItem}>Map</Link>
+          <Link href="/admin/map" className={`${styles.navItem} ${styles.active}`}>Map</Link>
           <Link href="/admin/analytic" className={styles.navItem}>Analytic</Link>
         </nav>
 
         <div className={styles.userBox}>
+          <div className={styles.userInfo}>
+            <span className={styles.userName}>User</span>
+            <span className={styles.userRole}>View Only</span>
+          </div>
           <div 
             className={styles.userIcon}
             onClick={() => setIsLogoutModalOpen(true)}
