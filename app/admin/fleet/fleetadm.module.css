@@ -77,6 +77,12 @@
   justify-content: center;
 }
 
+.userRole {
+  display: block;
+  font-size: 10px;
+  color: #a07eff;
+}
+
 .userImage {
   width: 20px;
   height: 20px;

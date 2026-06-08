@@ -4,7 +4,7 @@ import styles from './fleetadm.module.css';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+
 
 type Vessel = {
   id: number;
@@ -68,6 +68,20 @@ export default function FleetAdminPage() {
     };
     getVessels();
   }, [search, page]);
+
+  useEffect(() => {
+  const role = localStorage.getItem("role");
+
+  if (role !== "admin") {
+    alert("Anda harus login sebagai Admin!");
+
+    setTimeout(() => {
+      router.push("/login");
+    }, 1000);
+
+    return;
+  }
+}, []);
 
   const getBadgeClass = (status: string) => {
     if (status === 'In Port') return styles.inPort;
@@ -169,23 +183,23 @@ export default function FleetAdminPage() {
 
         <nav className={styles.nav}>
           <Link href="/admin/dashboard" className={styles.navItem}>Dashboard</Link>
-          <Link href="/admin/fleet" className={styles.navItem}>Fleet</Link>
+          <Link href="/admin/fleet" className={`${styles.navItem} ${styles.active}`}>Fleet</Link>
           <Link href="/admin/cargo" className={styles.navItem}>Cargo</Link>
-          <Link href="/admin/map" className={`${styles.navItem} ${styles.active}`}>Map</Link>
+          <Link href="/admin/map" className={styles.navItem}>Map</Link>
           <Link href="/admin/analytic" className={styles.navItem}>Analytic</Link>
         </nav>
-
+        
         <div className={styles.userBox}>
           <div className={styles.userInfo}>
-            <span className={styles.userName}>User</span>
-            <span className={styles.userRole}>View Only</span>
+            <span className={styles.userName}>Admin</span>
+            <span className={styles.userRole}>Administrator</span>
           </div>
           <div 
             className={styles.userIcon}
             onClick={() => setIsLogoutModalOpen(true)}
             style={{ cursor: 'pointer' }}
           >
-            <img src="/profile.png" alt="User" className={styles.userImage} />
+            <img src="/profile.png" alt="Admin" className={styles.userImage} />
           </div>
         </div>
       </header>

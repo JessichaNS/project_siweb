@@ -365,3 +365,9 @@
   font-weight: 700;
   cursor: pointer;
 }
+
+.userRole {
+  display: block;
+  font-size: 10px;
+  color: #a07eff;
+}

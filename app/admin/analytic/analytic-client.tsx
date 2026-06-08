@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import styles from './analytic.module.css';
+
 
 type Vessel = {
   id: number;
@@ -84,10 +86,12 @@ const defaultVessels: Vessel[] = [
 ];
 
 export default function AnalyticPage() {
+  const router = useRouter();
   const [vessels, setVessels] = useState<Vessel[]>([]);
   const [selected, setSelected] = useState<Vessel | null>(null);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   useEffect(() => {
     async function loadVessels() {
@@ -111,6 +115,20 @@ export default function AnalyticPage() {
     }
     loadVessels();
   }, []);
+
+  useEffect(() => {
+  const role = localStorage.getItem("role");
+
+  if (role !== "admin") {
+    alert("Anda harus login sebagai Admin!");
+
+    setTimeout(() => {
+      router.push("/login");
+    }, 1000);
+
+    return;
+  }
+}, []);
 
   const filteredVessels = vessels.filter(vessel => {
     return vessel.name.toLowerCase().includes(search.toLowerCase());
@@ -165,15 +183,19 @@ export default function AnalyticPage() {
         </nav>
 
         <div className={styles.userBox}>
-          <div className={styles.userIcon}>
-            <img
-              src="/profile.png"
-              alt="User"
-              className={styles.userImage}
-            />
+          <div className={styles.userInfo}>
+            <span className={styles.userName}>Admin</span>
+            <span className={styles.userRole}>Administrator</span>
+          </div>
+          <div 
+            className={styles.userIcon}
+            onClick={() => setIsLogoutModalOpen(true)}
+            style={{ cursor: 'pointer' }}
+          >
+            <img src="/profile.png" alt="Admin" className={styles.userImage} />
           </div>
         </div>
-      </header>
+        </header>
 
       <section className={styles.content}>
         <aside className={styles.sidebar}>

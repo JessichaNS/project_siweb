@@ -523,3 +523,9 @@
     height: 380px;
   }
 }
+
+.userRole {
+  display: block;
+  font-size: 10px;
+  color: #a07eff;
+}

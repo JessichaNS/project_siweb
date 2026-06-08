@@ -10,28 +10,31 @@ export default function LoginPage() {
 
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
+  const [error, setError] = useState("");
 
   const handleLogin = () => {
+    setError("");
+
     if (!user || !pass) {
-      alert("Isi semua field!");
+      setError("Isi semua field!");
       return;
     }
 
     if (user === "admin123" && pass === "admin321") {
       localStorage.setItem("role", "admin");
       localStorage.setItem("user", user);
-      router.push('/admin/dashboard')
+      router.push("/admin/dashboard");
       return;
     }
 
     if (user === "user123" && pass === "user321") {
       localStorage.setItem("role", "user");
       localStorage.setItem("user", user);
-      router.push("/dashboard");
+      router.push("/user/dashboard");
       return;
     }
 
-    alert("Username atau password salah!");
+    setError("Username atau password salah!");
   };
 
   return (
@@ -57,6 +60,12 @@ export default function LoginPage() {
             placeholder="admin321 / user321"
           />
         </div>
+
+        {error && (
+          <p className={styles.error}>
+            {error}
+          </p>
+        )}
 
         <button onClick={handleLogin} className={styles.btn}>
           Login

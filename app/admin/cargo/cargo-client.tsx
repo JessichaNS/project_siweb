@@ -89,6 +89,20 @@ export default function CargoAdminPage() {
   };
 
   useEffect(() => {
+  const role = localStorage.getItem("role");
+
+  if (role !== "admin") {
+    alert("Anda harus login sebagai Admin!");
+
+    setTimeout(() => {
+      router.push("/login");
+    }, 1000);
+
+    return;
+  }
+}, []);
+
+  useEffect(() => {
     getCargo();
   }, [search, page]);
 
@@ -171,15 +185,19 @@ export default function CargoAdminPage() {
         </nav>
 
         <div className={styles.userBox}>
+          <div className={styles.userInfo}>
+            <span className={styles.userName}>Admin</span>
+            <span className={styles.userRole}>Administrator</span>
+          </div>
           <div 
             className={styles.userIcon}
             onClick={() => setIsLogoutModalOpen(true)}
             style={{ cursor: 'pointer' }}
           >
-            <img src="/profile.png" alt="User" className={styles.userImage} />
+            <img src="/profile.png" alt="Admin" className={styles.userImage} />
           </div>
         </div>
-      </header>
+        </header>
 
       <section className={styles.mainGrid}>
         <section className={styles.leftPanel}>

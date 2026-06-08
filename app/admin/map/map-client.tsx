@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from './map.module.css';
 
@@ -83,25 +84,29 @@ const getVesselDetails = (vessel: Vessel | null): VesselDetail | null => {
 };
 
 export default function AdminMapPage() {
+  const router = useRouter();
   const [vessels, setVessels] = useState<Vessel[]>([]);
   const [selected, setSelected] = useState<Vessel | null>(null);
   const [search, setSearch] = useState('');
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [newStatus, setNewStatus] = useState('');
+  const [accessDenied, setAccessDenied] = useState(false);
 
   const details = getVesselDetails(selected);
 
   useEffect(() => {
-    async function getVessels() {
-      const res = await fetch('/api/map', { cache: 'no-store' });
-      const data = await res.json();
+  const role = localStorage.getItem("role");
 
-      setVessels(data.vessels || []);
-      setSelected(data.vessels?.[0] || null);
-    }
+  if (role !== "admin") {
+    alert("Anda harus login sebagai Admin!");
 
-    getVessels();
-  }, []);
+    setTimeout(() => {
+      router.push("/login");
+    }, 1000);
+
+    return;
+  }
+}, []);
 
   const filtered = vessels.filter((vessel) =>
     vessel.name.toLowerCase().includes(search.toLowerCase())
@@ -129,24 +134,33 @@ export default function AdminMapPage() {
         </nav>
 
         <div className={styles.rightNavSection}>
-          <button
-            className={styles.editButton}
-            onClick={() => setIsEditOpen(true)}
-          >
-            Edit Status Kapal
-          </button>
+  <button
+    className={styles.editButton}
+    onClick={() => setIsEditOpen(true)}
+  >
+    Edit Status Kapal
+  </button>
 
-          <div className={styles.userBox}>
-            <div className={styles.userIcon}>
-              <img
-                src="/profile.png"
-                alt="User"
-                className={styles.userImage}
-              />
-            </div>
-          </div>
-        </div>
-      </header>
+  <div className={styles.userBox}>
+    <div className={styles.userInfo}>
+      <span className={styles.userName}>Admin</span>
+      <span className={styles.userRole}>Administrator</span>
+    </div>
+
+    <div
+      className={styles.userIcon}
+      style={{ cursor: 'pointer' }}
+    >
+      <img
+        src="/profile.png"
+        alt="Admin"
+        className={styles.userImage}
+      />
+    </div>
+  </div>
+</div>
+
+</header>
 
       <section className={styles.content}>
         <aside className={styles.sidebar}>

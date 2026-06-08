@@ -32,27 +32,30 @@ export default function AdminDashboardPage() {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
 
-  useEffect(() => {
-    const role = localStorage.getItem("role");
-    if (role !== "admin") {
-      router.push('/login');
-      return;
-    }
-    fetchDashboardData();
-  }, []);
+useEffect(() => {
+  const role = localStorage.getItem("role");
+
+  if (role !== "admin") {
+    setAccessDenied(true);
+    return;
+  }
+
+  fetchDashboardData();
+}, []);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
       
       // Fetch vessels
-      const vesselsRes = await fetch('/api/vessels?limit=100');
+      const vesselsRes = await fetch('/api/vessels?limit=20');
       const vesselsData = await vesselsRes.json();
       const vessels = vesselsData.vessels || [];
 
       // Fetch cargo
-      const cargoRes = await fetch('/api/pengiriman?limit=100');
+      const cargoRes = await fetch('/api/pengiriman?limit=20');
       const cargoData = await cargoRes.json();
       const cargo = cargoData.pengiriman || [];
 
@@ -123,25 +126,45 @@ export default function AdminDashboardPage() {
   const completedPercentage = data && data.totalShipments > 0 ? Math.round((data.completed / data.totalShipments) * 100) : 0;
 
   if (loading) {
-    return (
-      <main className={styles.container}>
-        <div className={styles.loadingWrapper}>
-          <div className={styles.loadingSpinner}></div>
-          <p>Loading dashboard data...</p>
-        </div>
-      </main>
-    );
+    if (accessDenied) {
+  return (
+    <div className={styles.errorContainer}>
+      <div className={styles.errorGlow}></div>
+
+      <div className={styles.errorCard}>
+        <h1 className={styles.errorCode}>401</h1>
+
+        <h2 className={styles.errorTitle}>
+          Akses Ditolak
+        </h2>
+
+        <p className={styles.errorText}>
+          Anda harus login sebagai Administrator
+          untuk mengakses halaman ini.
+        </p>
+
+        <button
+          className={styles.errorButton}
+          onClick={() => router.push('/login')}
+        >
+          Login Sekarang
+        </button>
+      </div>
+    </div>
+  );
+}
   }
 
   if (!data) {
-    return (
-      <main className={styles.container}>
-        <div className={styles.loadingWrapper}>
-          <p>Failed to load data. Please refresh the page.</p>
-        </div>
-      </main>
-    );
-  }
+  return (
+    <main className={styles.container}>
+      <div className={styles.loadingWrapper}>
+        <div className={styles.loadingSpinner}></div>
+        <p>Loading dashboard data...</p>
+      </div>
+    </main>
+  );
+}
 
   return (
     <main className={styles.container}>

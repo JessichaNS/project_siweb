@@ -528,3 +528,9 @@
   background: #b01818;
   transform: translateY(-1px);
 }
+
+.userRole {
+  display: block;
+  font-size: 10px;
+  color: #a07eff;
+}
