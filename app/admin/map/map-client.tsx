@@ -25,50 +25,60 @@ type VesselDetail = {
   };
 };
 
-const dummyDetails: Record<string, VesselDetail> = {
+const dummyDetails: Record<string, Omit<VesselDetail, 'pinColor' | 'fuel'>> = {
   'KM Kelud': {
     captain: 'Capt. Herman Prasetyo',
     destination: 'Pelabuhan Tanjung Priok, Jakarta',
-    fuel: 78,
     speed: '18.5 knots',
-    pinColor: '#2ed573',
     position: { top: '62%', left: '20%' },
   },
   'KM Dorolonda': {
     captain: 'Capt. Budi Santoso',
     destination: 'Pelabuhan Tanjung Perak, Surabaya',
-    fuel: 65,
     speed: '16.2 knots',
-    pinColor: '#ffa502',
     position: { top: '55%', right: '9%' },
   },
   'KM Gunung Dempo': {
     captain: 'Capt. Ahmad Fauzi',
     destination: 'Pelabuhan Belawan, Medan',
-    fuel: 82,
     speed: '19.0 knots',
-    pinColor: '#ff4757',
     position: { top: '42%', right: '12%' },
   },
   'KM Sinabung': {
     captain: 'Capt. Yusuf Wijaya',
     destination: 'Pelabuhan Soekarno-Hatta, Makassar',
-    fuel: 45,
     speed: '15.8 knots',
-    pinColor: '#45aaff',
     position: { top: '70%', left: '8%' },
   },
 };
 
+const getColorByStatus = (status: string): string => {
+  switch (status) {
+    case 'En Route':
+      return '#2ed573'; // Hijau
+    case 'In Port':
+      return '#ffa502'; // Oranye
+    case 'Maintenance':
+      return '#ff4757'; // Merah
+    default:
+      return '#2e7dd1'; // Biru bawaan asli
+  }
+};
+
 const getVesselDetails = (vessel: Vessel | null): VesselDetail | null => {
   if (!vessel) return null;
-  return dummyDetails[vessel.name] || {
+  
+  const baseDetail = dummyDetails[vessel.name] || {
     captain: 'Capt. John Doe',
     destination: 'Pelabuhan Domestik, Indonesia',
-    fuel: vessel.fuel || 80,
     speed: '17.0 knots',
-    pinColor: '#ff4757',
     position: { top: '50%', left: '50%' },
+  };
+
+  return {
+    ...baseDetail,
+    fuel: vessel.fuel || 80,
+    pinColor: getColorByStatus(vessel.status),
   };
 };
 
@@ -158,8 +168,10 @@ export default function AdminMapPage() {
                 }`}
                 onClick={() => setSelected(vessel)}
               >
+                <span style={{ backgroundColor: getColorByStatus(vessel.status) }}>
+                  {vessel.status}
+                </span>
                 <h3>{vessel.name}</h3>
-                <span>{vessel.status}</span>
                 <p>📍 {vessel.location}</p>
                 <small>ETA: April 7, 14:30</small>
               </div>
@@ -182,7 +194,7 @@ export default function AdminMapPage() {
                   color: details.pinColor,
                 }}
               >
-                <div className={styles.radarPinRing}></div>
+                <div className={styles.radarPinRing} style={{ borderColor: details.pinColor }}></div>
               </div>
             )}
           </div>
@@ -219,37 +231,38 @@ export default function AdminMapPage() {
           </div>
         </section>
       </section>
+
       {isEditOpen && (
-  <div className={styles.modalOverlay}>
-    <div className={styles.statusModal}>
-      <h2>Edit Status Kapal</h2>
+        <div className={styles.modalOverlay}>
+          <div className={styles.statusModal}>
+            <h2>Edit Status Kapal</h2>
 
-      <label>Status kapal sekarang</label>
-      <div className={styles.currentStatus}>
-        🟢 Sampai di Dermaga Tokyo pada 9 April pukul 04.30 WIB
-      </div>
+            <label>Status kapal sekarang</label>
+            <div className={styles.currentStatus}>
+              🟢 {selected?.status || 'Tidak ada status'} - {selected?.location}
+            </div>
 
-      <label>Status Kapal Baru</label>
-      <input
-        className={styles.statusInput}
-        value={newStatus}
-        onChange={(e) => setNewStatus(e.target.value)}
-        placeholder="Masukkan status baru"
-      />
+            <label>Status Kapal Baru</label>
+            <input
+              className={styles.statusInput}
+              value={newStatus}
+              onChange={(e) => setNewStatus(e.target.value)}
+              placeholder="Masukkan status baru"
+            />
 
-      <button
-        className={styles.saveStatus}
-        onClick={() => {
-          alert('Status kapal berhasil disimpan');
-          setIsEditOpen(false);
-          setNewStatus('');
-        }}
-      >
-        Simpan
-      </button>
-    </div>
-  </div>
-)}
+            <button
+              className={styles.saveStatus}
+              onClick={() => {
+                alert('Status kapal berhasil disimpan');
+                setIsEditOpen(false);
+                setNewStatus('');
+              }}
+            >
+              Simpan
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

@@ -2,114 +2,71 @@
 
 import styles from './fleetadm.module.css';
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 type Vessel = {
   id: number;
   name: string;
-  type: string;
   status: string;
   location: string;
   fuel: number;
 };
 
-type VesselForm = {
-  name: string;
-  type: string;
-  status: string;
-};
-
-const initialForm: VesselForm = {
-  name: '',
-  type: 'Cargo',
-  status: 'In Port',
+type Toast = {
+  show: boolean;
+  message: string;
+  type: 'success' | 'error';
 };
 
 export default function FleetAdminPage() {
+  const router = useRouter();
   const [vessels, setVessels] = useState<Vessel[]>([]);
   const [selectedVessel, setSelectedVessel] = useState<Vessel | null>(null);
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [newVessel, setNewVessel] = useState<VesselForm>(initialForm);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  
+  // Modal states
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [addForm, setAddForm] = useState({ name: '', status: 'In Port' });
+  const [editForm, setEditForm] = useState({ id: 0, name: '', status: '' });
+  
+  // Toast state
+  const [toast, setToast] = useState<Toast>({ show: false, message: '', type: 'success' });
+  
+  // Logout modal state
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
-  const getVessels = useCallback(
-    async (targetPage = page) => {
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: '', type: 'success' });
+    }, 3000);
+  };
+
+  useEffect(() => {
+    const getVessels = async () => {
       try {
         setLoading(true);
-
         const res = await fetch(
-          `/api/vessels?search=${search}&page=${targetPage}&limit=4`,
-          {
-            cache: 'no-store',
-          }
+          `/api/vessels?search=${search}&page=${page}&limit=4`,
+          { cache: 'no-store' }
         );
-
         const data = await res.json();
-
-        if (!res.ok) {
-          alert(data.error || 'Gagal mengambil data vessels');
-          return;
-        }
-
         setVessels(data.vessels || []);
         setTotalPages(data.totalPages || 1);
       } catch (error) {
         console.log(error);
-        alert('Terjadi kesalahan saat mengambil data vessels');
+        showToast('Gagal memuat data', 'error');
       } finally {
         setLoading(false);
       }
-    },
-    [search, page]
-  );
-
-  useEffect(() => {
-    getVessels(page);
-  }, [getVessels, page]);
-
-  const handleAddVessel = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (!newVessel.name.trim()) {
-      alert('Nama kapal wajib diisi');
-      return;
-    }
-
-    try {
-      setSaving(true);
-
-      const res = await fetch('/api/vessels', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newVessel),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.error || 'Gagal menambahkan vessel');
-        return;
-      }
-
-      alert('Vessel berhasil ditambahkan');
-
-      setNewVessel(initialForm);
-      setIsAddOpen(false);
-      setPage(1);
-      await getVessels(1);
-    } catch (error) {
-      console.log(error);
-      alert('Terjadi kesalahan saat menambahkan vessel');
-    } finally {
-      setSaving(false);
-    }
-  };
+    };
+    getVessels();
+  }, [search, page]);
 
   const getBadgeClass = (status: string) => {
     if (status === 'In Port') return styles.inPort;
@@ -119,52 +76,122 @@ export default function FleetAdminPage() {
     return '';
   };
 
+  const handleAddVessel = async () => {
+    if (!addForm.name.trim()) {
+      showToast('Nama vessel harus diisi', 'error');
+      return;
+    }
+    try {
+      const res = await fetch('/api/vessels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: addForm.name, status: addForm.status }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsAddModalOpen(false);
+        setAddForm({ name: '', status: 'In Port' });
+        const refreshRes = await fetch(`/api/vessels?search=${search}&page=${page}&limit=4`);
+        const refreshData = await refreshRes.json();
+        setVessels(refreshData.vessels || []);
+        setTotalPages(refreshData.totalPages || 1);
+        showToast(`✅ Vessel "${addForm.name}" berhasil ditambahkan`, 'success');
+      } else {
+        showToast('Gagal menambahkan vessel', 'error');
+      }
+    } catch (error) {
+      console.error(error);
+      showToast('Terjadi kesalahan', 'error');
+    }
+  };
+
+  const handleEditVessel = async () => {
+    if (!editForm.name.trim()) {
+      showToast('Nama vessel harus diisi', 'error');
+      return;
+    }
+    try {
+      const res = await fetch('/api/vessels', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editForm.id, name: editForm.name, status: editForm.status }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsEditModalOpen(false);
+        const refreshRes = await fetch(`/api/vessels?search=${search}&page=${page}&limit=4`);
+        const refreshData = await refreshRes.json();
+        setVessels(refreshData.vessels || []);
+        setTotalPages(refreshData.totalPages || 1);
+        if (selectedVessel && selectedVessel.id === editForm.id) {
+          setSelectedVessel({ ...selectedVessel, name: editForm.name, status: editForm.status });
+        }
+        showToast(`✏️ Vessel "${editForm.name}" berhasil diupdate`, 'success');
+      } else {
+        showToast('Gagal mengupdate vessel', 'error');
+      }
+    } catch (error) {
+      console.error(error);
+      showToast('Terjadi kesalahan', 'error');
+    }
+  };
+
+  const openEditModal = () => {
+    if (!selectedVessel) {
+      showToast('Pilih vessel terlebih dahulu', 'error');
+      return;
+    }
+    setEditForm({
+      id: selectedVessel.id,
+      name: selectedVessel.name,
+      status: selectedVessel.status,
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('role');
+    sessionStorage.clear();
+    router.push('/login');
+  };
+
   return (
     <main className={styles.container}>
       <header className={styles.topbar}>
         <div className={styles.logoBox}>
-          <Link href="/admin/dashboard" className={styles.logo}>
-            <img
-              src="/shipylogo.jpeg"
-              alt="Shipy Logo"
-              className={styles.logoImage}
-            />
-          </Link>
+          <div className={styles.logo}>
+            <img src="/shipylogo.jpeg" alt="Shipy Logo" className={styles.logoImage} />
+          </div>
         </div>
 
         <nav className={styles.nav}>
-          <Link href="/admin/dashboard" className={styles.navItem}>
-            Dashboard
-          </Link>
-          <Link href="/admin/fleet" className={`${styles.navItem} ${styles.active}`}>
-            Fleet
-          </Link>
-          <Link href="/admin/cargo" className={styles.navItem}>
-            Cargo
-          </Link>
-          <Link href="/admin/map" className={styles.navItem}>
-            Map
-          </Link>
-          <Link href="/admin/analytic" className={styles.navItem}>
-            Analytic
-          </Link>
+          <Link href="/admin/dashboard" className={styles.navItem}>Dashboard</Link>
+          <Link href="/admin/fleet" className={`${styles.navItem} ${styles.active}`}>Fleet</Link>
+          <Link href="/admin/cargo" className={styles.navItem}>Cargo</Link>
+          <Link href="/admin/map" className={styles.navItem}>Map</Link>
+          <Link href="/admin/analytic" className={styles.navItem}>Analytic</Link>
         </nav>
 
         <div className={styles.userBox}>
-          <div className={styles.userIcon}>
+          <div 
+            className={styles.userIcon}
+            onClick={() => setIsLogoutModalOpen(true)}
+            style={{ cursor: 'pointer' }}
+          >
             <img src="/profile.png" alt="User" className={styles.userImage} />
           </div>
         </div>
       </header>
 
       <section className={styles.mainGrid}>
-        <div className={styles.leftPanel}>
+        <section className={styles.leftPanel}>
           <div className={styles.leftHeader}>
             <h2>Vessel List</h2>
-
             <input
               className={styles.search}
-              placeholder="Search vessel..."
+              placeholder="Search"
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -192,20 +219,17 @@ export default function FleetAdminPage() {
                     </span>
                   </div>
 
-                  <p className={styles.location}>{vessel.location}</p>
-                  <p className={styles.location}>Type: {vessel.type}</p>
+                  <p className={styles.location}>📍 {vessel.location}</p>
 
                   <div className={styles.fuelRow}>
                     <span>Fuel Level</span>
-                    <strong>{vessel.fuel}%</strong>
+                    <span>{vessel.fuel}%</span>
                   </div>
 
                   <div className={styles.fuelBar}>
                     <div
                       className={styles.fuelFill}
-                      style={{
-                        width: `${vessel.fuel}%`,
-                      }}
+                      style={{ width: `${vessel.fuel}%` }}
                     />
                   </div>
                 </div>
@@ -214,202 +238,171 @@ export default function FleetAdminPage() {
           </div>
 
           <div className={styles.pagination}>
-            <button
-              type="button"
-              onClick={() => setPage(page - 1)}
-              disabled={page === 1}
-            >
+            <button onClick={() => setPage(page - 1)} disabled={page === 1}>
               ←
             </button>
-
-            <span>
-              {page} / {totalPages}
-            </span>
-
-            <button
-              type="button"
-              onClick={() => setPage(page + 1)}
-              disabled={page === totalPages}
-            >
-              →
+            <span>{page} / {totalPages}</span>
+            <button onClick={() => setPage(page + 1)} disabled={page === totalPages}>
+              →  
             </button>
           </div>
-        </div>
+        </section>
 
-        <div className={styles.rightPanel}>
+        <aside className={styles.rightPanel}>
           {selectedVessel ? (
             <div className={styles.detailCard}>
               <h2>{selectedVessel.name}</h2>
-              <p>Location: {selectedVessel.location}</p>
-              <p>Type: {selectedVessel.type}</p>
-              <p>Status: {selectedVessel.status}</p>
-              <p>Fuel: {selectedVessel.fuel}%</p>
+              <p><b>Location:</b> {selectedVessel.location}</p>
+              <p><b>Status:</b> {selectedVessel.status}</p>
+              <p><b>Fuel:</b> {selectedVessel.fuel}%</p>
+
+              <div className={styles.fuelBar}>
+                <div
+                  className={styles.fuelFill}
+                  style={{ width: `${selectedVessel.fuel}%` }}
+                />
+              </div>
             </div>
           ) : (
             <div className={styles.emptyDetail}>
-              <div>
-                <p>No Vessel Selected</p>
-                <span>Select a vessel to view details</span>
-              </div>
+              No Vessel Selected
+              <br />
+              Select a vessel to view details
             </div>
           )}
 
           <div className={styles.buttons}>
             <button
-              type="button"
               className={styles.actionButton}
-              onClick={() => setIsAddOpen(true)}
+              onClick={() => setIsAddModalOpen(true)}
             >
               Add Vessels
             </button>
 
             <button
-              type="button"
               className={styles.actionButton}
-              onClick={() => alert('Pilih vessel dulu, nanti fitur edit bisa disambungkan.')}
+              onClick={openEditModal}
             >
               Edit Vessels
             </button>
           </div>
-        </div>
+        </aside>
       </section>
 
-      {isAddOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0, 0, 0, 0.65)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 999,
-          }}
-        >
-          <form
-            onSubmit={handleAddVessel}
-            style={{
-              width: '420px',
-              background: '#2a0d45',
-              border: '2px solid #5f37ff',
-              borderRadius: '22px',
-              padding: '24px',
-              color: 'white',
-            }}
-          >
-            <h2 style={{ marginBottom: '18px' }}>Add Vessel</h2>
+      {/* Add Modal */}
+      {isAddModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setIsAddModalOpen(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3>➕ Add New Vessel</h3>
+              <button className={styles.modalClose} onClick={() => setIsAddModalOpen(false)}>×</button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.inputGroup}>
+                <label>Vessel Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g., MV. Meratus Jaya"
+                  value={addForm.name}
+                  onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
+                  autoFocus
+                />
+              </div>
+              <div className={styles.inputGroup}>
+                <label>Status</label>
+                <select
+                  value={addForm.status}
+                  onChange={(e) => setAddForm({ ...addForm, status: e.target.value })}
+                >
+                  <option value="In Port">⚓ In Port</option>
+                  <option value="En Route">🚢 En Route</option>
+                  <option value="Maintenance">🔧 Maintenance</option>
+                  <option value="Delayed">⚠️ Delayed</option>
+                </select>
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button className={styles.cancelBtn} onClick={() => setIsAddModalOpen(false)}>Cancel</button>
+              <button className={styles.submitBtn} onClick={handleAddVessel}>Add Vessel</button>
+            </div>
+          </div>
+        </div>
+      )}
 
-            <label style={{ display: 'block', marginBottom: '8px' }}>
-              Vessel Name
-            </label>
-            <input
-              type="text"
-              value={newVessel.name}
-              onChange={(e) =>
-                setNewVessel({
-                  ...newVessel,
-                  name: e.target.value,
-                })
-              }
-              placeholder="Contoh: KM Sinabung"
-              required
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '12px',
-                border: 'none',
-                marginBottom: '16px',
-              }}
-            />
+      {/* Edit Modal */}
+      {isEditModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setIsEditModalOpen(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3>✏️ Edit Vessel</h3>
+              <button className={styles.modalClose} onClick={() => setIsEditModalOpen(false)}>×</button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.inputGroup}>
+                <label>Vessel Name</label>
+                <input
+                  type="text"
+                  placeholder="Vessel name"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  autoFocus
+                />
+              </div>
+              <div className={styles.inputGroup}>
+                <label>Status</label>
+                <select
+                  value={editForm.status}
+                  onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                >
+                  <option value="In Port">⚓ In Port</option>
+                  <option value="En Route">🚢 En Route</option>
+                  <option value="Maintenance">🔧 Maintenance</option>
+                  <option value="Delayed">⚠️ Delayed</option>
+                </select>
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button className={styles.cancelBtn} onClick={() => setIsEditModalOpen(false)}>Cancel</button>
+              <button className={styles.submitBtn} onClick={handleEditVessel}>Save Changes</button>
+            </div>
+          </div>
+        </div>
+      )}
 
-            <label style={{ display: 'block', marginBottom: '8px' }}>
-              Vessel Type
-            </label>
-            <select
-              value={newVessel.type}
-              onChange={(e) =>
-                setNewVessel({
-                  ...newVessel,
-                  type: e.target.value,
-                })
-              }
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '12px',
-                border: 'none',
-                marginBottom: '16px',
-              }}
-            >
-              <option value="Cargo">Cargo</option>
-              <option value="Passenger">Passenger</option>
-              <option value="Tanker">Tanker</option>
-              <option value="Container">Container</option>
-            </select>
-
-            <label style={{ display: 'block', marginBottom: '8px' }}>
-              Vessel Status
-            </label>
-            <select
-              value={newVessel.status}
-              onChange={(e) =>
-                setNewVessel({
-                  ...newVessel,
-                  status: e.target.value,
-                })
-              }
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '12px',
-                border: 'none',
-                marginBottom: '20px',
-              }}
-            >
-              <option value="In Port">In Port</option>
-              <option value="En Route">En Route</option>
-              <option value="Maintenance">Maintenance</option>
-              <option value="Delayed">Delayed</option>
-            </select>
-
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAddOpen(false);
-                  setNewVessel(initialForm);
-                }}
-                style={{
-                  flex: 1,
-                  padding: '12px',
-                  borderRadius: '12px',
-                  border: '1px solid #5f37ff',
-                  background: '#2d1048',
-                  color: 'white',
-                  cursor: 'pointer',
-                }}
+      {/* Logout Confirmation Modal */}
+      {isLogoutModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setIsLogoutModalOpen(false)}>
+          <div className={styles.logoutModal} onClick={(e) => e.stopPropagation()}>
+            <h2>Konfirmasi Logout</h2>
+            <p>Apakah Anda yakin ingin keluar?</p>
+            <div className={styles.logoutButtons}>
+              <button 
+                className={styles.cancelLogout}
+                onClick={() => setIsLogoutModalOpen(false)}
               >
-                Cancel
+                Tidak
               </button>
-
-              <button
-                type="submit"
-                disabled={saving}
-                style={{
-                  flex: 1,
-                  padding: '12px',
-                  borderRadius: '12px',
-                  border: 'none',
-                  background: '#6d4cff',
-                  color: 'white',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
+              <button 
+                className={styles.confirmLogout}
+                onClick={handleLogout}
               >
-                {saving ? 'Saving...' : 'Save'}
+                Ya, Logout
               </button>
             </div>
-          </form>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`${styles.toast} ${toast.type === 'success' ? styles.toastSuccess : styles.toastError}`}>
+          <span>{toast.message}</span>
+          <button 
+            className={styles.toastClose}
+            onClick={() => setToast({ show: false, message: '', type: 'success' })}
+          >
+            ×
+          </button>
         </div>
       )}
     </main>

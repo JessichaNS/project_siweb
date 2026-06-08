@@ -1,564 +1,371 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import styles from './dash.module.css';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 type DashboardData = {
-  summary: {
-    totalVessels: number;
-    arrivedVessels: number;
-    enRouteVessels: number;
-    maintenanceVessels: number;
-    delayedVessels: number;
-  };
-  cargo: {
-    currentMonthCargo: number;
-    lastMonthCargo: number;
-    currentMonthRevenue: number;
-    monthlyCargoTarget: number;
-    cargoPercentage: number;
-    cargoGrowth: number;
-  };
-  statusPercentage: {
-    arrived: number;
-    enRoute: number;
-    maintenance: number;
-    delayed: number;
-  };
-  fuel: {
-    totalConsumption: number;
-  };
-  deliverySpeed: {
-    average: number;
-    growth: number;
-    weekly: number[];
-  };
-  alerts: {
-    noResi: string;
-    namaPenerima: string;
-    status: string;
-    tanggalTransaksi: string;
-  }[];
+  // Vessel Stats
+  totalVessels: number;
+  enRoute: number;
+  inPort: number;
+  maintenance: number;
+  delayed: number;
+  avgFuel: number;
+  // Cargo Stats
+  totalShipments: number;
+  completed: number;
+  inTransit: number;
+  processing: number;
+  totalRevenue: number;
+  // Monthly
+  monthlyCargoIn: number;
+  monthlyCargoTarget: number;
+  // Delivery
+  avgSpeed: number;
+  speedGrowth: number;
 };
 
-const initialDashboardData: DashboardData = {
-  summary: {
-    totalVessels: 0,
-    arrivedVessels: 0,
-    enRouteVessels: 0,
-    maintenanceVessels: 0,
-    delayedVessels: 0,
-  },
-  cargo: {
-    currentMonthCargo: 0,
-    lastMonthCargo: 0,
-    currentMonthRevenue: 0,
-    monthlyCargoTarget: 1000,
-    cargoPercentage: 0,
-    cargoGrowth: 0,
-  },
-  statusPercentage: {
-    arrived: 0,
-    enRoute: 0,
-    maintenance: 0,
-    delayed: 0,
-  },
-  fuel: {
-    totalConsumption: 48.5,
-  },
-  deliverySpeed: {
-    average: 28.8,
-    growth: 65,
-    weekly: [21.6, 19.4, 29.5, 21.8],
-  },
-  alerts: [],
-};
-
-export default function DashboardPage() {
-  const [dashboardData, setDashboardData] =
-    useState<DashboardData>(initialDashboardData);
+export default function AdminDashboardPage() {
+  const router = useRouter();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [fleetLink, setFleetLink] = useState('/admin/fleet');
 
   useEffect(() => {
-    const role = localStorage.getItem('role');
-
-    if (role === 'admin') {
-      setFleetLink('/admin/fleet');
-    } else {
-      setFleetLink('/auser/fleet_usr');
+    const role = localStorage.getItem("role");
+    if (role !== "admin") {
+      router.push('/login');
+      return;
     }
+    fetchDashboardData();
   }, []);
 
-  useEffect(() => {
-    async function getDashboardData() {
-      try {
-        setLoading(true);
-        setError('');
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch vessels
+      const vesselsRes = await fetch('/api/vessels?limit=100');
+      const vesselsData = await vesselsRes.json();
+      const vessels = vesselsData.vessels || [];
 
-        const res = await fetch('/api/dashboard', {
-          cache: 'no-store',
-        });
+      // Fetch cargo
+      const cargoRes = await fetch('/api/pengiriman?limit=100');
+      const cargoData = await cargoRes.json();
+      const cargo = cargoData.pengiriman || [];
 
-        const data = await res.json();
+      // VESSEL STATS
+      const enRoute = vessels.filter((v: any) => v.status === 'En Route').length;
+      const inPort = vessels.filter((v: any) => v.status === 'In Port').length;
+      const maintenance = vessels.filter((v: any) => v.status === 'Maintenance').length;
+      const delayed = vessels.filter((v: any) => v.status === 'Delayed').length;
+      const totalVessels = vessels.length;
+      
+      const avgFuel = vessels.length > 0 
+        ? Math.round(vessels.reduce((sum: number, v: any) => sum + (v.fuel || 0), 0) / vessels.length)
+        : 0;
 
-        if (!res.ok) {
-          throw new Error(data.error || 'Gagal mengambil data dashboard');
-        }
+      // CARGO STATS
+      const completed = cargo.filter((c: any) => c.status === 'Selesai').length;
+      const inTransit = cargo.filter((c: any) => c.status === 'Dikirim').length;
+      const processing = cargo.filter((c: any) => c.status === 'Diproses').length;
+      const totalShipments = cargo.length;
+      const totalRevenue = cargo.reduce((sum: number, c: any) => sum + (Number(c.tarif) || 0), 0);
 
-        setDashboardData(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : String(err));
-      } finally {
-        setLoading(false);
-      }
+      // MONTHLY CARGO
+      const currentMonth = new Date().getMonth();
+      const monthlyCargo = cargo
+        .filter((c: any) => new Date(c.tanggal_transaksi).getMonth() === currentMonth)
+        .reduce((sum: number, c: any) => sum + (Number(c.tarif) || 0), 0);
+      
+      const monthlyCargoIn = Math.round(monthlyCargo / 1000000);
+      const monthlyCargoTarget = 1000;
+
+      // DELIVERY SPEED
+      const avgSpeed = 22.5 + (completed / Math.max(totalShipments, 1)) * 5;
+      const speedGrowth = Math.round((avgSpeed / 20 - 1) * 100);
+
+      setData({
+        totalVessels,
+        enRoute,
+        inPort,
+        maintenance,
+        delayed,
+        avgFuel,
+        totalShipments,
+        completed,
+        inTransit,
+        processing,
+        totalRevenue,
+        monthlyCargoIn,
+        monthlyCargoTarget,
+        avgSpeed: Math.round(avgSpeed * 10) / 10,
+        speedGrowth,
+      });
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
     }
-
-    getDashboardData();
-  }, []);
-
-  const formatNumber = (value: number) => {
-    return new Intl.NumberFormat('id-ID').format(value);
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      maximumFractionDigits: 0,
-    }).format(value);
+  const handleLogout = () => {
+    localStorage.removeItem('role');
+    localStorage.removeItem('user');
+    sessionStorage.clear();
+    router.push('/login');
   };
 
-  const formatDate = (value: string) => {
-    if (!value) return '-';
+  const cargoPercentage = data ? Math.min(Math.round((data.monthlyCargoIn / data.monthlyCargoTarget) * 100), 100) : 0;
+  const completedPercentage = data && data.totalShipments > 0 ? Math.round((data.completed / data.totalShipments) * 100) : 0;
 
-    return new Intl.DateTimeFormat('id-ID', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(new Date(value));
-  };
+  if (loading) {
+    return (
+      <main className={styles.container}>
+        <div className={styles.loadingWrapper}>
+          <div className={styles.loadingSpinner}></div>
+          <p>Loading dashboard data...</p>
+        </div>
+      </main>
+    );
+  }
 
-  const getAlertClass = (index: number) => {
-    if (index === 0) return `${styles.alertBox} ${styles.alertRed}`;
-    if (index === 1) return `${styles.alertBox} ${styles.alertYellow}`;
-    return `${styles.alertBox} ${styles.alertBrown}`;
-  };
+  if (!data) {
+    return (
+      <main className={styles.container}>
+        <div className={styles.loadingWrapper}>
+          <p>Failed to load data. Please refresh the page.</p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className={styles.container}>
       <header className={styles.topbar}>
         <div className={styles.logoBox}>
-          <Link href="/admin/dashboard" className={styles.logo}>
-            <img
-              src="/shipylogo.jpeg"
-              alt="Shipy Logo"
-              className={styles.logoImage}
-            />
-          </Link>
+          <div className={styles.logo}>
+            <img src="/shipylogo.jpeg" alt="Shipy Logo" className={styles.logoImage} />
+          </div>
         </div>
 
         <nav className={styles.nav}>
-          <Link
-            href="/admin/dashboard"
-            className={`${styles.navItem} ${styles.active}`}
-          >
-            Dashboard
-          </Link>
-          <Link href={fleetLink} className={styles.navItem}>
-            Fleet
-          </Link>
-          <Link href="/admin/cargo" className={styles.navItem}>
-            Cargo
-          </Link>
-          <Link href="/admin/map" className={styles.navItem}>
-            Map
-          </Link>
-          <Link href="/admin/analytic" className={styles.navItem}>
-            Analytic
-          </Link>
+          <Link href="/admin/dashboard" className={`${styles.navItem} ${styles.active}`}>Dashboard</Link>
+          <Link href="/admin/fleet" className={styles.navItem}>Fleet</Link>
+          <Link href="/admin/cargo" className={styles.navItem}>Cargo</Link>
+          <Link href="/admin/map" className={styles.navItem}>Map</Link>
+          <Link href="/admin/analytic" className={styles.navItem}>Analytic</Link>
         </nav>
 
         <div className={styles.userBox}>
-          <div className={styles.userIcon}>
-            <img src="/profile.png" alt="User" className={styles.userImage} />
+          <div className={styles.userInfo}>
+            <span className={styles.userName}>Admin</span>
+            <span className={styles.userRole}>Administrator</span>
+          </div>
+          <div 
+            className={styles.userIcon}
+            onClick={() => setIsLogoutModalOpen(true)}
+            style={{ cursor: 'pointer' }}
+          >
+            <img src="/profile.png" alt="Admin" className={styles.userImage} />
           </div>
         </div>
       </header>
 
-      {error && (
-        <div
-          style={{
-            background: '#a00f26',
-            border: '1px solid #ff375d',
-            borderRadius: '12px',
-            padding: '12px 16px',
-            marginBottom: '16px',
-            fontWeight: 700,
-          }}
-        >
-          {error}
-        </div>
-      )}
-
+      {/* SUMMARY BAR - SAMA PERSIS DENGAN USER */}
       <section className={styles.summaryBar}>
         <div className={styles.summaryItem}>
-          <span>Total Vessels</span>
-          <strong>
-            {loading ? '-' : formatNumber(dashboardData.summary.totalVessels)}
-          </strong>
+          <span>🚢 Total Vessels</span>
+          <strong>{data.totalVessels}</strong>
         </div>
-
         <div className={styles.summaryItem}>
-          <span>Arrived Vessels</span>
-          <strong>
-            {loading ? '-' : formatNumber(dashboardData.summary.arrivedVessels)}
-          </strong>
+          <span>✅ Completed</span>
+          <strong>{data.completed}</strong>
         </div>
-
         <div className={styles.summaryItem}>
-          <span>En Route Vessels</span>
-          <strong>
-            {loading ? '-' : formatNumber(dashboardData.summary.enRouteVessels)}
-          </strong>
+          <span>🚚 En Route</span>
+          <strong>{data.enRoute}</strong>
         </div>
-
         <div className={styles.summaryItem}>
-          <span>Maintenance</span>
-          <strong>
-            {loading
-              ? '-'
-              : formatNumber(dashboardData.summary.maintenanceVessels)}
-          </strong>
+          <span>📦 Shipments</span>
+          <strong>{data.totalShipments}</strong>
         </div>
-
         <div className={styles.summaryItem}>
-          <span>Delayed Vessels</span>
+          <span>💰 Revenue</span>
           <strong>
-            {loading ? '-' : formatNumber(dashboardData.summary.delayedVessels)}
+            {data.totalRevenue > 0 
+              ? `Rp ${(data.totalRevenue / 1000000).toLocaleString('id-ID', { minimumFractionDigits: 1 })}M`
+              : 'Rp 0'}
           </strong>
         </div>
       </section>
 
+      {/* MAIN GRID - SAMA PERSIS DENGAN USER */}
       <section className={styles.grid}>
+        {/* CARD 1: Monthly Cargo In */}
         <div className={styles.cargoCard}>
-          <h3>Monthly Cargo in</h3>
-
+          <h3>📦 Monthly Cargo In</h3>
           <div className={styles.progressWrap}>
             <div className={styles.progressHeader}>
-              <span>{loading ? '-' : `${dashboardData.cargo.cargoPercentage}%`}</span>
+              <strong>{cargoPercentage}%</strong>
             </div>
-
             <div className={styles.progressBar}>
-              <div
-                className={styles.progressFill}
-                style={{
-                  width: `${dashboardData.cargo.cargoPercentage}%`,
-                }}
-              />
+              <div className={styles.progressFill} style={{ width: `${cargoPercentage}%` }}></div>
             </div>
+            <p className={styles.smallText}>
+              {data.monthlyCargoIn.toLocaleString()} / {data.monthlyCargoTarget.toLocaleString()}
+              <br />
+              Ton
+            </p>
+          </div>
+          <p className={styles.greenText}>
+            {cargoPercentage}% ↑ from last month
+          </p>
+        </div>
 
-            <div className={styles.smallText}>
-              <strong>
-                {loading
-                  ? '-'
-                  : `${formatNumber(
-                      dashboardData.cargo.currentMonthCargo
-                    )}/${formatNumber(dashboardData.cargo.monthlyCargoTarget)}`}
-              </strong>
-              <br />
-              Shipment
-              <br />
-              Revenue:{' '}
-              {loading
-                ? '-'
-                : formatCurrency(dashboardData.cargo.currentMonthRevenue)}
-            </div>
-
-            <div className={styles.greenText}>
-              {dashboardData.cargo.cargoGrowth >= 0 ? '↑' : '↓'}{' '}
-              {Math.abs(dashboardData.cargo.cargoGrowth)}% from
-              <br />
-              last month
-            </div>
+        {/* CARD 2: World Map */}
+        <div className={styles.mapCard}>
+          <img src="/map siweb.jpeg" alt="World Map" className={styles.mapImage} />
+          <div className={`${styles.dot} ${styles.red}`}></div>
+          <div className={`${styles.dot} ${styles.green}`}></div>
+          <div className={`${styles.dot} ${styles.yellow}`}></div>
+          <div className={`${styles.dot} ${styles.blueOne}`}></div>
+          <div className={`${styles.dot} ${styles.blueTwo}`}></div>
+          <div className={styles.mapBadge}>
+            <span>{data.enRoute} Active Vessels</span>
           </div>
         </div>
 
-        <div className={styles.mapCard}>
-          <img
-            src="/map siweb baru.png"
-            alt="Map"
-            className={styles.mapImage}
-          />
-          <span className={`${styles.dot} ${styles.red}`} />
-          <span className={`${styles.dot} ${styles.green}`} />
-          <span className={`${styles.dot} ${styles.yellow}`} />
-          <span className={`${styles.dot} ${styles.blueOne}`} />
-          <span className={`${styles.dot} ${styles.blueTwo}`} />
-        </div>
-
+        {/* CARD 3: Fleet Status Overview */}
         <div className={styles.statusCard}>
-          <h3>Fleet Status Overview</h3>
-
+          <h3>📊 Fleet Status Overview</h3>
           <div className={styles.statusBars}>
             <div className={styles.statusBar}>
-              <div
-                className={`${styles.fill} ${styles.fillBlue}`}
-                style={{
-                  width: `${dashboardData.statusPercentage.enRoute}%`,
-                }}
-              />
+              <div className={`${styles.fill} ${styles.fillBlue}`} style={{ width: `${(data.enRoute / data.totalVessels) * 100}%` }}></div>
             </div>
-
             <div className={styles.statusBar}>
-              <div
-                className={`${styles.fill} ${styles.fillRed}`}
-                style={{
-                  width: `${dashboardData.statusPercentage.delayed}%`,
-                }}
-              />
+              <div className={`${styles.fill} ${styles.fillGreen}`} style={{ width: `${(data.inPort / data.totalVessels) * 100}%` }}></div>
             </div>
-
             <div className={styles.statusBar}>
-              <div
-                className={`${styles.fill} ${styles.fillGreen}`}
-                style={{
-                  width: `${dashboardData.statusPercentage.arrived}%`,
-                }}
-              />
+              <div className={`${styles.fill} ${styles.fillYellow}`} style={{ width: `${(data.delayed / data.totalVessels) * 100}%` }}></div>
             </div>
-
             <div className={styles.statusBar}>
-              <div
-                className={`${styles.fill} ${styles.fillYellow}`}
-                style={{
-                  width: `${dashboardData.statusPercentage.maintenance}%`,
-                }}
-              />
+              <div className={`${styles.fill} ${styles.fillRed}`} style={{ width: `${(data.maintenance / data.totalVessels) * 100}%` }}></div>
             </div>
           </div>
-
           <div className={styles.legend}>
-            <span>
-              <i className={styles.legendBlue} />
-              En Route
-            </span>
-            <span>
-              <i className={styles.legendRed} />
-              Delayed
-            </span>
-            <span>
-              <i className={styles.legendGreen} />
-              In Port
-            </span>
-            <span>
-              <i className={styles.legendYellow} />
-              Maintenance
-            </span>
+            <span><i className={styles.legendBlue}></i>En Route ({data.enRoute})</span>
+            <span><i className={styles.legendGreen}></i>In Port ({data.inPort})</span>
+            <span><i className={styles.legendYellow}></i>Delayed ({data.delayed})</span>
+            <span><i className={styles.legendRed}></i>Maintenance ({data.maintenance})</span>
           </div>
         </div>
 
+        {/* CARD 4: Fuel Consumption */}
         <div className={styles.fuelCard}>
-          <h3>Fuel Consumption</h3>
-
+          <h3>⛽ Fuel Consumption</h3>
           <div className={styles.fuelStats}>
-            <p className={styles.muted}>Today</p>
-
+            <p className={styles.muted}>Average Fleet Fuel</p>
             <div className={styles.fuelNumberRow}>
-              <h2>{dashboardData.fuel.totalConsumption}</h2>
-              <span className={styles.unit}>KL</span>
+              <h2>{data.avgFuel}</h2>
+              <span className={styles.unit}>%</span>
             </div>
-
-            <p className={styles.mutedSmall}>Total Consumption</p>
+            <p className={styles.mutedSmall}>Across {data.totalVessels} vessels</p>
           </div>
-
-          <div className={styles.chart}>
-            <div className={styles.chartGrid} />
-
-            <svg
-              className={styles.svgChart}
-              viewBox="0 0 280 150"
-              preserveAspectRatio="none"
-            >
-              <polyline
-                points="0,120 40,95 80,105 120,60 160,72 210,45 280,80"
-                fill="none"
-                stroke="#5c4bff"
-                strokeWidth="4"
-              />
-              <circle className={styles.chartPoint} cx="40" cy="95" r="4" />
-              <circle className={styles.chartPoint} cx="80" cy="105" r="4" />
-              <circle className={styles.chartPoint} cx="120" cy="60" r="4" />
-              <circle className={styles.chartPoint} cx="160" cy="72" r="4" />
-              <circle className={styles.chartPoint} cx="210" cy="45" r="4" />
-            </svg>
+          <div className={styles.fuelMiniBar}>
+            <div className={styles.fuelMiniFill} style={{ width: `${data.avgFuel}%` }}></div>
           </div>
-
-          <div className={styles.fuelXAxis}>
-            <span>00.00</span>
-            <span>04.00</span>
-            <span>08.00</span>
-            <span>12.00</span>
-            <span>20.00</span>
-            <span>24.00</span>
+          <div className={styles.fuelNote}>
+            <span>⚠️ {data.avgFuel < 50 ? 'Low fuel alert on multiple vessels' : 'Fuel levels are optimal'}</span>
           </div>
         </div>
 
+        {/* CARD 5: Shipment Status */}
         <div className={styles.deliveryCard}>
           <div className={styles.deliveryHeaderRow}>
             <div className={styles.deliveryHeaderLeft}>
-              <h3 className={styles.deliveryTitle}>Monthly Delivery Speed</h3>
-              <p className={styles.deliverySubtitle}>(Average)</p>
-
+              <h3 className={styles.deliveryTitle}>Shipment Status</h3>
+              <p className={styles.deliverySubtitle}>(Current Month)</p>
               <div className={styles.deliveryValueRow}>
-                <span className={styles.deliveryBigNumber}>
-                  {dashboardData.deliverySpeed.average}
-                </span>
-                <span className={styles.deliveryBigUnit}>Knots</span>
+                <span className={styles.deliveryBigNumber}>{completedPercentage}</span>
+                <span className={styles.deliveryBigUnit}>%</span>
               </div>
             </div>
-
             <div className={styles.deliveryGrowthBox}>
-              <span className={styles.deliveryGrowthTop}>
-                ↑ {dashboardData.deliverySpeed.growth}%
-              </span>
-              <span className={styles.deliveryGrowthBottom}>
-                from last month
-              </span>
+              <div className={styles.deliveryGrowthTop}>↑ {data.speedGrowth}%</div>
+              <div className={styles.deliveryGrowthBottom}>completion rate</div>
             </div>
           </div>
-
-          <div className={styles.deliveryChartBox}>
-            <div className={styles.deliveryLeftAxis}>
-              <span>40</span>
-              <span>30</span>
-              <span>20</span>
-              <span>10</span>
-              <span>0</span>
+          <div className={styles.shipmentStats}>
+            <div className={styles.shipmentStatItem}>
+              <span className={styles.shipmentStatValue}>{data.completed}</span>
+              <span className={styles.shipmentStatLabel}>Completed</span>
             </div>
-
-            <svg className={styles.deliveryChartSvg} viewBox="0 0 360 190">
-              <line
-                className={styles.deliveryAxisLine}
-                x1="20"
-                y1="10"
-                x2="20"
-                y2="150"
-              />
-              <line
-                className={styles.deliveryAxisLine}
-                x1="20"
-                y1="150"
-                x2="340"
-                y2="150"
-              />
-
-              <line
-                className={styles.deliveryGuideLine}
-                x1="20"
-                y1="45"
-                x2="340"
-                y2="45"
-              />
-              <line
-                className={styles.deliveryGuideLine}
-                x1="20"
-                y1="80"
-                x2="340"
-                y2="80"
-              />
-              <line
-                className={styles.deliveryGuideLine}
-                x1="20"
-                y1="115"
-                x2="340"
-                y2="115"
-              />
-
-              <polyline
-                points="55,76 135,83 215,48 295,75"
-                fill="none"
-                stroke="#5a46ff"
-                strokeWidth="5"
-              />
-
-              <circle className={styles.deliveryPoint} cx="55" cy="76" r="7" />
-              <circle className={styles.deliveryPoint} cx="135" cy="83" r="7" />
-              <circle className={styles.deliveryPoint} cx="215" cy="48" r="7" />
-              <circle className={styles.deliveryPoint} cx="295" cy="75" r="7" />
-
-              <text className={styles.deliveryPointText} x="43" y="63">
-                {dashboardData.deliverySpeed.weekly[0]}
-              </text>
-              <text className={styles.deliveryPointText} x="123" y="70">
-                {dashboardData.deliverySpeed.weekly[1]}
-              </text>
-              <text className={styles.deliveryPointText} x="203" y="35">
-                {dashboardData.deliverySpeed.weekly[2]}
-              </text>
-              <text className={styles.deliveryPointText} x="283" y="62">
-                {dashboardData.deliverySpeed.weekly[3]}
-              </text>
-
-              <text className={styles.deliveryWeekText} x="38" y="180">
-                Week 1
-              </text>
-              <text className={styles.deliveryWeekText} x="118" y="180">
-                Week 2
-              </text>
-              <text className={styles.deliveryWeekText} x="198" y="180">
-                Week 3
-              </text>
-              <text className={styles.deliveryWeekText} x="278" y="180">
-                Week 4
-              </text>
-            </svg>
+            <div className={styles.shipmentStatItem}>
+              <span className={styles.shipmentStatValue}>{data.inTransit}</span>
+              <span className={styles.shipmentStatLabel}>In Transit</span>
+            </div>
+            <div className={styles.shipmentStatItem}>
+              <span className={styles.shipmentStatValue}>{data.processing}</span>
+              <span className={styles.shipmentStatLabel}>Processing</span>
+            </div>
           </div>
         </div>
 
+        {/* CARD 6: Alerts */}
         <div className={styles.alertsCard}>
-          <h3>ALERTS</h3>
-
-          {loading ? (
-            <div className={`${styles.alertBox} ${styles.alertBrown}`}>
+          <h3>⚠️ ALERTS</h3>
+          
+          {data.avgFuel < 50 && (
+            <div className={`${styles.alertBox} ${styles.alertRed}`}>
               <div className={styles.alertInner}>
                 <div className={styles.alertLeft}>
-                  <div className={styles.alertIcon}>...</div>
-                  <strong>Loading alerts...</strong>
+                  <div className={styles.alertIcon}>⛽</div>
+                  <strong>Low fuel warning</strong>
                 </div>
+                <p>Average fuel: {data.avgFuel}%</p>
               </div>
             </div>
-          ) : dashboardData.alerts.length === 0 ? (
-            <div className={`${styles.alertBox} ${styles.alertBrown}`}>
-              <div className={styles.alertInner}>
-                <div className={styles.alertLeft}>
-                  <div className={styles.alertIcon}>✓</div>
-                  <strong>No active alerts</strong>
-                </div>
-                <p>All shipment data is clear</p>
-              </div>
-            </div>
-          ) : (
-            dashboardData.alerts.map((alert, index) => (
-              <div key={`${alert.noResi}-${index}`} className={getAlertClass(index)}>
-                <div className={styles.alertInner}>
-                  <div className={styles.alertLeft}>
-                    <div className={styles.alertIcon}>⚠</div>
-                    <strong>
-                      Shipment {alert.noResi} untuk {alert.namaPenerima} masih{' '}
-                      {alert.status}
-                    </strong>
-                  </div>
-
-                  <p>{formatDate(alert.tanggalTransaksi)}</p>
-                </div>
-              </div>
-            ))
           )}
+          
+          <div className={`${styles.alertBox} ${styles.alertYellow}`}>
+            <div className={styles.alertInner}>
+              <div className={styles.alertLeft}>
+                <div className={styles.alertIcon}>📦</div>
+                <strong>{data.totalShipments - data.completed} pending deliveries</strong>
+              </div>
+              <p>{data.completed} completed this month</p>
+            </div>
+          </div>
+          
+          <div className={`${styles.alertBox} ${styles.alertBrown}`}>
+            <div className={styles.alertInner}>
+              <div className={styles.alertLeft}>
+                <div className={styles.alertIcon}>🚢</div>
+                <strong>{data.enRoute} vessels en route</strong>
+              </div>
+              <p>Track live on map</p>
+            </div>
+          </div>
         </div>
       </section>
+
+      {/* Logout Modal */}
+      {isLogoutModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setIsLogoutModalOpen(false)}>
+          <div className={styles.logoutModal} onClick={(e) => e.stopPropagation()}>
+            <h2>Konfirmasi Logout</h2>
+            <p>Apakah Anda yakin ingin keluar?</p>
+            <div className={styles.logoutButtons}>
+              <button className={styles.cancelLogout} onClick={() => setIsLogoutModalOpen(false)}>Tidak</button>
+              <button className={styles.confirmLogout} onClick={handleLogout}>Ya, Logout</button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

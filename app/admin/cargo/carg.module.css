@@ -290,3 +290,241 @@
   font-weight: 600;
   line-height: 1.4;
 }
+
+/* Modal Form Grid - 2 Kolom */
+.modalFormGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.formColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.formGroup label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #a07eff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.formGroup input,
+.formGroup select {
+  padding: 10px 12px;
+  border: 1.5px solid #5f37ff;
+  border-radius: 12px;
+  background: #2d1048;
+  color: white;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.formGroup input:focus,
+.formGroup select:focus {
+  outline: none;
+  border-color: #8b6eff;
+  box-shadow: 0 0 0 2px rgba(95, 55, 255, 0.2);
+}
+
+.formGroup input::placeholder {
+  color: #8a6bcb;
+}
+
+/* Modal Buttons */
+.modalButtons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #5f37ff;
+}
+
+.cancelBtn {
+  background: transparent;
+  color: #a07eff;
+  border: 1px solid #5f37ff;
+  padding: 10px 24px;
+  border-radius: 40px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelBtn:hover {
+  background: rgba(95, 55, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.submitBtn {
+  background: #5f37ff;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 40px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.submitBtn:hover {
+  background: #7b57ff;
+  transform: translateY(-1px);
+}
+
+/* Scrollbar styling */
+.modalFormGrid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modalFormGrid::-webkit-scrollbar-track {
+  background: #2d1048;
+  border-radius: 10px;
+}
+
+.modalFormGrid::-webkit-scrollbar-thumb {
+  background: #5f37ff;
+  border-radius: 10px;
+}
+
+/* Toast styling */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #2fae46;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 18px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 1100;
+  animation: slideInRight 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.toastError {
+  background: #d31d1d;
+}
+
+.toastSuccess {
+  background: #2fae46;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toastClose {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+}
+
+.toastClose:hover {
+  opacity: 1;
+}
+
+.errorMessage {
+  background: rgba(211, 29, 29, 0.2);
+  border: 1px solid #d31d1d;
+  color: #ffaaaa;
+  padding: 10px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+/* Logout Modal */
+.logoutModal {
+  width: 380px;
+  background: #24103d;
+  border: 2px solid #5f37ff;
+  border-radius: 20px;
+  padding: 28px 32px;
+  color: white;
+  text-align: center;
+}
+
+.logoutModal h2 {
+  margin: 0 0 16px 0;
+  font-size: 22px;
+  color: #ffffff;
+}
+
+.logoutModal p {
+  margin: 0 0 28px 0;
+  font-size: 15px;
+  color: #cfc2ff;
+}
+
+.logoutButtons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.cancelLogout {
+  background: transparent;
+  border: 1px solid #5f37ff;
+  color: #a07eff;
+  padding: 10px 24px;
+  border-radius: 40px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelLogout:hover {
+  background: rgba(95, 55, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.confirmLogout {
+  background: #d31d1d;
+  border: none;
+  color: white;
+  padding: 10px 24px;
+  border-radius: 40px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.confirmLogout:hover {
+  background: #b01818;
+  transform: translateY(-1px);
+}

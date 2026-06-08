@@ -32,13 +32,12 @@ type Toast = {
   type: 'success' | 'error';
 };
 
-const dummyDetails: Record<string, VesselDetail> = {
+const dummyDetails: Record<string, Omit<VesselDetail, 'pinColor'>> = {
   'KM Kelud': {
     captain: 'Capt. Herman Prasetyo',
     destination: 'Pelabuhan Tanjung Priok, Jakarta',
     currentLocation: 'Selat Sunda, 15 mil dari Pelabuhan Merak',
     speed: '18.5 knots',
-    pinColor: '#2ed573',
     position: { top: '62%', left: '20%' },
   },
   'KM Dorolonda': {
@@ -46,7 +45,6 @@ const dummyDetails: Record<string, VesselDetail> = {
     destination: 'Pelabuhan Tanjung Perak, Surabaya',
     currentLocation: 'Laut Jawa, 30 mil dari Surabaya',
     speed: '16.2 knots',
-    pinColor: '#ffa502',
     position: { top: '55%', right: '9%' },
   },
   'KM Gunung Dempo': {
@@ -54,7 +52,6 @@ const dummyDetails: Record<string, VesselDetail> = {
     destination: 'Pelabuhan Belawan, Medan',
     currentLocation: 'Selat Malaka, mendekati Pelabuhan Belawan',
     speed: '19.0 knots',
-    pinColor: '#ff4757',
     position: { top: '42%', right: '12%' },
   },
   'KM Sinabung': {
@@ -62,7 +59,6 @@ const dummyDetails: Record<string, VesselDetail> = {
     destination: 'Pelabuhan Soekarno-Hatta, Makassar',
     currentLocation: 'Laut Flores, 50 mil dari Makassar',
     speed: '15.8 knots',
-    pinColor: '#45aaff',
     position: { top: '70%', left: '8%' },
   },
   'MV Pasific Star': {
@@ -70,7 +66,6 @@ const dummyDetails: Record<string, VesselDetail> = {
     destination: 'Pelabuhan Tanjung Priok, Jakarta',
     currentLocation: 'Samudra Pasifik, 200 mil dari Indonesia',
     speed: '22.5 knots',
-    pinColor: '#ff6b6b',
     position: { top: '35%', right: '25%' },
   },
   'KM Nusantara': {
@@ -78,20 +73,37 @@ const dummyDetails: Record<string, VesselDetail> = {
     destination: 'Pelabuhan Benoa, Denpasar',
     currentLocation: 'Laut Bali, 30 mil dari Denpasar',
     speed: '14.2 knots',
-    pinColor: '#4ecdc4',
     position: { top: '75%', left: '35%' },
   },
 };
 
+const getColorByStatus = (status: string): string => {
+  switch (status) {
+    case 'En Route':
+      return '#2ed573'; // Hijau asli dashboard maritim
+    case 'In Port':
+      return '#ffa502'; // Oranye / Kuning
+    case 'Maintenance':
+      return '#ff4757'; // Merah
+    default:
+      return '#2e7dd1'; // Biru bawaan file CSS asli
+  }
+};
+
 const getVesselDetails = (vessel: Vessel | null): VesselDetail | null => {
   if (!vessel) return null;
-  return dummyDetails[vessel.name] || {
+  
+  const baseDetail = dummyDetails[vessel.name] || {
     captain: 'Capt. John Doe',
     destination: 'Pelabuhan Domestik, Indonesia',
     currentLocation: 'Laut Indonesia',
     speed: '17.0 knots',
-    pinColor: '#ff4757',
     position: { top: '50%', left: '50%' },
+  };
+
+  return {
+    ...baseDetail,
+    pinColor: getColorByStatus(vessel.status),
   };
 };
 
@@ -112,7 +124,6 @@ export default function UserMapPage() {
 
   const details = getVesselDetails(selected);
 
-  // Cek role user
   useEffect(() => {
     const role = localStorage.getItem('role');
     if (role !== 'user') {
@@ -209,8 +220,10 @@ export default function UserMapPage() {
                 }`}
                 onClick={() => setSelected(vessel)}
               >
+                <span style={{ backgroundColor: getColorByStatus(vessel.status) }}>
+                  {vessel.status}
+                </span>
                 <h3>{vessel.name}</h3>
-                <span className={styles.statusBadge}>{vessel.status}</span>
                 <p>📍 {vessel.location}</p>
                 <small>⚡ Fuel: {vessel.fuel}%</small>
               </div>
@@ -219,17 +232,17 @@ export default function UserMapPage() {
 
           <div className={styles.fleetStats}>
             <div className={styles.statItem}>
-  <span>En Route</span>
-  <strong>{vessels.filter(v => v.status === 'En Route').length}</strong>
-</div>
-<div className={styles.statItem}>
-  <span>In Port</span>
-  <strong>{vessels.filter(v => v.status === 'In Port').length}</strong>
-</div>
-<div className={styles.statItem}>
-  <span>Maintenance</span>
-  <strong>{vessels.filter(v => v.status === 'Maintenance').length}</strong>
-</div>
+              <span>En Route</span>
+              <strong>{vessels.filter(v => v.status === 'En Route').length}</strong>
+            </div>
+            <div className={styles.statItem}>
+              <span>In Port</span>
+              <strong>{vessels.filter(v => v.status === 'In Port').length}</strong>
+            </div>
+            <div className={styles.statItem}>
+              <span>Maintenance</span>
+              <strong>{vessels.filter(v => v.status === 'Maintenance').length}</strong>
+            </div>
           </div>
         </aside>
 
@@ -248,7 +261,7 @@ export default function UserMapPage() {
                   color: details.pinColor,
                 }}
               >
-                <div className={styles.radarPinRing}></div>
+                <div className={styles.radarPinRing} style={{ borderColor: details.pinColor }}></div>
               </div>
             )}
           </div>
@@ -282,7 +295,7 @@ export default function UserMapPage() {
                   <strong>Status: {selected.status}</strong>
                   <p>Vessel ini sedang {selected.status === 'En Route' ? 'berlayar menuju tujuan' : 
                      selected.status === 'In Port' ? 'bersandar di pelabuhan' :
-                     selected.status === 'Maintenance' ? 'menjalani perawatan' : 'mengalami keterlambatan'}</p>
+                     selected.status === 'Maintenance' ? 'menjalani perawatan' : 'mengalami kondisi operasional lainnya'}</p>
                 </div>
               </div>
             )}
@@ -290,7 +303,6 @@ export default function UserMapPage() {
         </section>
       </section>
 
-      {/* Logout Confirmation Modal */}
       {isLogoutModalOpen && (
         <div className={styles.modalOverlay} onClick={() => setIsLogoutModalOpen(false)}>
           <div className={styles.logoutModal} onClick={(e) => e.stopPropagation()}>

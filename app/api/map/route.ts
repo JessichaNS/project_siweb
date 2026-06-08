@@ -8,7 +8,8 @@ export async function GET() {
     SELECT
       id,
       nama_kapal AS name,
-      tipe_kapal AS status,
+      tipe_kapal AS type,
+      status_kapal AS status,
       'Indonesia' AS location,
       80 AS fuel
     FROM vessels
