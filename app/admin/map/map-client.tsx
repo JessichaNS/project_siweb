@@ -108,6 +108,18 @@ export default function AdminMapPage() {
   }
 }, []);
 
+useEffect(() => {
+  async function getVessels() {
+    const res = await fetch('/api/map', { cache: 'no-store' });
+    const data = await res.json();
+
+    setVessels(data.vessels || []);
+    setSelected(data.vessels?.[0] || null);
+  }
+
+  getVessels();
+}, []);
+
   const filtered = vessels.filter((vessel) =>
     vessel.name.toLowerCase().includes(search.toLowerCase())
   );
