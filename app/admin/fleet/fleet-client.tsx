@@ -2,6 +2,7 @@
 
 import styles from './fleetadm.module.css';
 import Link from 'next/link';
+import Megamenu from '@/app/ui/megamenu/megamenu';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -157,31 +158,9 @@ export default function FleetAdminPage() {
   };
 
   return (
-    <main className={styles.container}>
-      {/* ── HEADER ── */}
-      <header className={styles.topbar}>
-        <div className={styles.logoBox}>
-          <div className={styles.logo}>
-            <img src="/shipylogo.jpeg" alt="Shipy Logo" className={styles.logoImage} />
-          </div>
-        </div>
-        <nav className={styles.nav}>
-          <Link href="/admin/dashboard" className={styles.navItem}>Dashboard</Link>
-          <Link href="/admin/fleet"     className={`${styles.navItem} ${styles.active}`}>Fleet</Link>
-          <Link href="/admin/cargo"     className={styles.navItem}>Cargo</Link>
-          <Link href="/admin/map"       className={styles.navItem}>Map</Link>
-          <Link href="/admin/analytic"  className={styles.navItem}>Analytic</Link>
-        </nav>
-        <div className={styles.userBox}>
-          <div className={styles.userInfo}>
-            <span className={styles.userName}>Admin</span>
-            <span className={styles.userRole}>Administrator</span>
-          </div>
-          <div className={styles.userIcon} onClick={() => setIsLogoutModalOpen(true)} style={{ cursor: 'pointer' }}>
-            <img src="/profile.png" alt="Admin" className={styles.userImage} />
-          </div>
-        </div>
-      </header>
+<main className={styles.container}>
+      <Megamenu onLogout={() => setIsLogoutModalOpen(true)} />
+
 
       {/* ── MAIN GRID ── */}
       <section className={styles.mainGrid}>

@@ -5,6 +5,8 @@ import mapStyles from './dashmap.module.css';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
+import Megamenu from '@/app/ui/megamenu/megamenu';
+
 
 type DashboardData = {
   totalVessels: number;
@@ -178,30 +180,8 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <main className={styles.container}>
-      <header className={styles.topbar}>
-        <div className={styles.logoBox}>
-          <div className={styles.logo}>
-            <img src="/shipylogo.jpeg" alt="Shipy Logo" className={styles.logoImage} />
-          </div>
-        </div>
-        <nav className={styles.nav}>
-          <Link href="/admin/dashboard" className={`${styles.navItem} ${styles.active}`}>Dashboard</Link>
-          <Link href="/admin/fleet" className={styles.navItem}>Fleet</Link>
-          <Link href="/admin/cargo" className={styles.navItem}>Cargo</Link>
-          <Link href="/admin/map" className={styles.navItem}>Map</Link>
-          <Link href="/admin/analytic" className={styles.navItem}>Analytic</Link>
-        </nav>
-        <div className={styles.userBox}>
-          <div className={styles.userInfo}>
-            <span className={styles.userName}>Admin</span>
-            <span className={styles.userRole}>Administrator</span>
-          </div>
-          <div className={styles.userIcon} onClick={() => setIsLogoutModalOpen(true)} style={{ cursor: 'pointer' }}>
-            <img src="/profile.png" alt="Admin" className={styles.userImage} />
-          </div>
-        </div>
-      </header>
+   <main className={styles.container}>
+      <Megamenu onLogout={() => setIsLogoutModalOpen(true)} />
 
       <section className={styles.summaryBar}>
         <div className={styles.summaryItem}><span>Total Vessels</span><strong>{data.totalVessels}</strong></div>

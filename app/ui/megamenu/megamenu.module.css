@@ -1,0 +1,181 @@
+.topbar {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #24103f;
+  border-bottom: 1px solid rgba(140, 109, 255, 0.35);
+  padding: 0 18px;
+  margin: -10px -14px 14px;
+  position: relative;
+  z-index: 100;
+}
+
+.logoBox {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.logoImage {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+/* NAV */
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.navGroup {
+  position: relative;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 13px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.65);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+
+.navItem:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.active {
+  color: white !important;
+  background: rgba(110, 75, 255, 0.35) !important;
+  border: 1px solid rgba(110, 75, 255, 0.5);
+}
+
+.chevron {
+  font-size: 10px;
+  opacity: 0.6;
+  margin-left: 1px;
+}
+
+/* MEGA DROPDOWN */
+.megadrop {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e0835;
+  border: 1px solid rgba(110, 75, 255, 0.4);
+  border-radius: 14px;
+  padding: 10px;
+  min-width: 340px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: fadeDown 0.15s ease;
+  z-index: 200;
+}
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.megaGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.megaItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.15s;
+  border: 1px solid transparent;
+}
+
+.megaItem:hover {
+  background: rgba(110, 75, 255, 0.15);
+  border-color: rgba(110, 75, 255, 0.3);
+}
+
+.megaIcon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.megaLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 3px;
+}
+
+.megaDesc {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* RIGHT SECTION */
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.liveBadge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #34ff34;
+  background: rgba(52, 255, 52, 0.1);
+  border: 1px solid rgba(52, 255, 52, 0.3);
+  border-radius: 99px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.liveDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #34ff34;
+  display: inline-block;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.userIcon {
+  cursor: pointer;
+}
+
+.userImage {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(110, 75, 255, 0.5);
+  transition: border-color 0.2s;
+}
+
+.userImage:hover {
+  border-color: rgba(110, 75, 255, 0.9);
+}

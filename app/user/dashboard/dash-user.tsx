@@ -45,6 +45,13 @@ export default function UserDashboardPage() {
     
     setUserName(user || 'User');
     fetchDashboardData();
+
+    // Streaming: auto-refresh data setiap 5 detik
+    const interval = setInterval(() => {
+      fetchDashboardData();
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, [router]);
 
   const fetchDashboardData = async () => {
@@ -181,23 +188,23 @@ export default function UserDashboardPage() {
       {/* SUMMARY BAR - 5 items */}
       <section className={styles.summaryBar}>
         <div className={styles.summaryItem}>
-          <span>Total Vessels</span>
+          <span>🚢 Total Vessels</span>
           <strong>{data.totalVessels}</strong>
         </div>
         <div className={styles.summaryItem}>
-          <span> Completed</span>
+          <span>✅ Completed</span>
           <strong>{data.completed}</strong>
         </div>
         <div className={styles.summaryItem}>
-          <span> En Route</span>
+          <span>🚚 En Route</span>
           <strong>{data.enRoute}</strong>
         </div>
         <div className={styles.summaryItem}>
-          <span> Shipments</span>
+          <span>📦 Shipments</span>
           <strong>{data.totalShipments}</strong>
         </div>
         <div className={styles.summaryItem}>
-  <span> Revenue</span>
+  <span>💰 Revenue</span>
   <strong>
     {data.totalRevenue > 0 
       ? `Rp ${(data.totalRevenue / 1000000).toLocaleString('id-ID', { minimumFractionDigits: 1 })}M`

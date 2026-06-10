@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from './map.module.css';
+import Megamenu from '@/app/ui/megamenu/megamenu';
 
 type Vessel = {
   id: number;
@@ -88,6 +89,7 @@ export default function AdminMapPage() {
   const [search, setSearch] = useState('');
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [newStatus, setNewStatus] = useState('');
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [toast, setToast] = useState<{show: boolean; message: string; type: 'success'|'error'}>({ show: false, message: '', type: 'success' });
 
   const showToast = (message: string, type: 'success'|'error' = 'success') => {
@@ -160,38 +162,25 @@ export default function AdminMapPage() {
 
   const handleMouseUp = () => { isDragging.current = false; };
 
+  const handleLogout = () => {
+    // Hapus session/token jika ada
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    sessionStorage.clear();
+    
+    // Redirect ke halaman login
+    router.push('/login');
+  };
+
   return (
     <main className={styles.container}>
-      <header className={styles.topbar}>
-        <div className={styles.logoBox}>
-          <div className={styles.logo}>
-            <img src="/shipylogo.jpeg" alt="Shipy Logo" className={styles.logoImage} />
-          </div>
-        </div>
-
-        <nav className={styles.nav}>
-          <Link href="/admin/dashboard" className={styles.navItem}>Dashboard</Link>
-          <Link href="/admin/fleet"     className={styles.navItem}>Fleet</Link>
-          <Link href="/admin/cargo"     className={styles.navItem}>Cargo</Link>
-          <Link href="/admin/map"       className={`${styles.navItem} ${styles.active}`}>Map</Link>
-          <Link href="/admin/analytic"  className={styles.navItem}>Analytic</Link>
-        </nav>
+      <Megamenu onLogout={() => setIsLogoutModalOpen(true)} />
 
         <div className={styles.rightNavSection}>
           <button className={styles.editButton} onClick={() => setIsEditOpen(true)}>
             Edit Status Kapal
           </button>
-          <div className={styles.userBox}>
-            <div className={styles.userInfo}>
-              <span className={styles.userName}>Admin</span>
-              <span className={styles.userRole}>Administrator</span>
-            </div>
-            <div className={styles.userIcon} style={{ cursor: 'pointer' }}>
-              <img src="/profile.png" alt="Admin" className={styles.userImage} />
-            </div>
-          </div>
         </div>
-      </header>
 
       <section className={styles.content}>
         <aside className={styles.sidebar}>

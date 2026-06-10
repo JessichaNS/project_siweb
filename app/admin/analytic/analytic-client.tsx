@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './analytic.module.css';
+import Megamenu from '@/app/ui/megamenu/megamenu';
+
 
 type Vessel = {
   id: number;
@@ -148,35 +150,7 @@ export default function AnalyticPage() {
 
   return (
     <main className={styles.container}>
-      <header className={styles.topbar}>
-        <div className={styles.logoBox}>
-          <div className={styles.logo}>
-            <img src="/shipylogo.jpeg" alt="Shipy Logo" className={styles.logoImage} />
-          </div>
-        </div>
-
-        <nav className={styles.nav}>
-          <Link href="/admin/dashboard" className={styles.navItem}>Dashboard</Link>
-          <Link href="/admin/fleet" className={styles.navItem}>Fleet</Link>
-          <Link href="/admin/cargo" className={styles.navItem}>Cargo</Link>
-          <Link href="/admin/map" className={styles.navItem}>Map</Link>
-          <Link href="/admin/analytic" className={`${styles.navItem} ${styles.active}`}>Analytic</Link>
-        </nav>
-
-        <div className={styles.userBox}>
-          <div className={styles.userInfo}>
-            <span className={styles.userName}>Admin</span>
-            <span className={styles.userRole}>Administrator</span>
-          </div>
-          <div
-            className={styles.userIcon}
-            onClick={() => setIsLogoutModalOpen(true)}
-            style={{ cursor: 'pointer' }}
-          >
-            <img src="/profile.png" alt="Admin" className={styles.userImage} />
-          </div>
-        </div>
-      </header>
+      <Megamenu onLogout={() => setIsLogoutModalOpen(true)} />
 
       <section className={styles.content}>
         <aside className={styles.sidebar}>

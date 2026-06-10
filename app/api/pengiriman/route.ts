@@ -18,6 +18,8 @@ function getSql() {
 }
 
 // ─── GET ────────────────────────────────────────────────────────────────────
+// JOIN ke pelanggan & pelabuhan supaya bisa tampil nama_pengirim, kota_asal,
+// no_telepon yang tidak ada di tabel pengiriman langsung.
 export async function GET(request: NextRequest) {
   const sql = getSql();
   try {
@@ -30,7 +32,6 @@ export async function GET(request: NextRequest) {
       SELECT
         p.id,
         p.no_resi,
-        p.berat,
         pl.nama_customer   AS nama_pengirim,
         pl.telepon         AS no_telepon,
         pl.kota_asal       AS kota_asal,
@@ -70,25 +71,13 @@ export async function GET(request: NextRequest) {
         OR p.nama_penerima  ILIKE ${'%' + search + '%'}
     `;
 
-    // ✅ Summary dari seluruh data di database (bukan hanya halaman ini)
-    const summaryResult = await sql`
-      SELECT
-        COUNT(*)::int AS total_shipments,
-        COALESCE(SUM(tarif), 0)::int AS total_value,
-        COUNT(*) FILTER (WHERE status = 'Selesai')::int AS completed,
-        COUNT(*) FILTER (WHERE status = 'Dikirim')::int AS in_transit
-      FROM pengiriman
-    `;
-
     const total = Number(countResult[0]?.total || 0);
-    const summary = summaryResult[0];
 
     return NextResponse.json({
       pengiriman,
       total,
       page,
       totalPages: Math.max(1, Math.ceil(total / limit)),
-      summary, // ✅ ditambahkan
     });
   } catch (err) {
     return NextResponse.json(
@@ -102,16 +91,17 @@ export async function GET(request: NextRequest) {
 }
 
 // ─── POST ───────────────────────────────────────────────────────────────────
+// Karena nama_pengirim / no_telepon / kota_asal ada di tabel pelanggan,
+// kita INSERT dulu ke pelanggan lalu pakai id-nya untuk pengiriman.
 export async function POST(request: NextRequest) {
   const sql = getSql();
   try {
     const body = await request.json();
 
-    body.tanggal_transaksi = body.tanggal_transaksi || new Date().toISOString().split('T')[0];
-
+    // Validasi field wajib
     const required = [
       'tanggal_transaksi', 'nama_pengirim', 'nama_penerima',
-      'no_telepon', 'kota_asal', 'kota_tujuan', 'tarif', 'berat'
+      'no_telepon', 'kota_asal', 'kota_tujuan', 'tarif',
     ];
     for (const field of required) {
       if (body[field] === undefined || body[field] === '') {
@@ -122,6 +112,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 1) Insert pelanggan baru, ambil id-nya
     const pelangganResult = await sql`
       INSERT INTO pelanggan (nama_customer, kota_asal, telepon)
       VALUES (${body.nama_pengirim}, ${body.kota_asal}, ${body.no_telepon})
@@ -129,8 +120,10 @@ export async function POST(request: NextRequest) {
     `;
     const pelangganId = pelangganResult[0].id;
 
+    // 2) Generate no_resi otomatis jika belum ada
     const noResi = body.no_resi || await generateNextResi(sql);
 
+    // 3) Insert pengiriman
     await sql`
       INSERT INTO pengiriman (
         no_resi,
@@ -144,21 +137,19 @@ export async function POST(request: NextRequest) {
         jenis_pengiriman,
         status,
         tarif,
-        berat,
         catatan_tambahan
       ) VALUES (
         ${noResi},
         ${body.tanggal_transaksi},
         ${pelangganId},
-        ${Number(body.vessel_id)           || 1},
-        ${Number(body.pelabuhan_asal_id)   || 1},
+        ${Number(body.vessel_id)         || 1},
+        ${Number(body.pelabuhan_asal_id) || 1},
         ${Number(body.pelabuhan_tujuan_id) || 2},
         ${body.nama_penerima},
         ${body.kota_tujuan},
         ${body.jenis_pengiriman  || 'Biasa'},
         ${body.status            || 'Diproses'},
         ${Number(body.tarif)},
-        ${Number(body.berat)},
         ${body.catatan_barang    || ''}
       )
     `;
@@ -179,6 +170,8 @@ export async function POST(request: NextRequest) {
 }
 
 // ─── PUT ────────────────────────────────────────────────────────────────────
+// Update pengiriman. Data pengirim (nama, telepon, kota_asal) diupdate
+// di tabel pelanggan via pelanggan_id.
 export async function PUT(request: NextRequest) {
   const sql = getSql();
   try {
@@ -191,6 +184,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Ambil pelanggan_id dari pengiriman yang akan diedit
     const existing = await sql`
       SELECT pelanggan_id FROM pengiriman WHERE id = ${Number(body.id)}
     `;
@@ -202,6 +196,7 @@ export async function PUT(request: NextRequest) {
     }
     const pelangganId = existing[0].pelanggan_id;
 
+    // Update data pelanggan (pengirim)
     if (pelangganId) {
       await sql`
         UPDATE pelanggan
@@ -213,6 +208,7 @@ export async function PUT(request: NextRequest) {
       `;
     }
 
+    // Update pengiriman
     await sql`
       UPDATE pengiriman
       SET
@@ -222,7 +218,6 @@ export async function PUT(request: NextRequest) {
         jenis_pengiriman = ${body.jenis_pengiriman},
         status           = ${body.status},
         tarif            = ${Number(body.tarif)},
-        berat            = ${Number(body.berat || 0)},
         catatan_tambahan = ${body.catatan_barang || ''}
       WHERE id = ${Number(body.id)}
     `;
@@ -250,6 +245,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    // Ambil pelanggan_id dulu sebelum dihapus
     const existing = await sql`
       SELECT pelanggan_id FROM pengiriman WHERE id = ${Number(id)}
     `;
@@ -261,10 +257,14 @@ export async function DELETE(request: NextRequest) {
     }
     const pelangganId = existing[0].pelanggan_id;
 
+    // Hapus tabel turunan dulu (urutan penting karena foreign key)
     await sql`DELETE FROM map_tracking      WHERE pengiriman_id = ${Number(id)}`;
     await sql`DELETE FROM detail_pengiriman WHERE pengiriman_id = ${Number(id)}`;
+
+    // Hapus pengiriman
     await sql`DELETE FROM pengiriman WHERE id = ${Number(id)}`;
 
+    // Hapus pelanggan jika tidak dipakai pengiriman lain
     if (pelangganId) {
       const stillUsed = await sql`
         SELECT COUNT(*)::int AS total

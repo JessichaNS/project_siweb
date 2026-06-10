@@ -55,7 +55,7 @@ export default function CargoUserPage() {
   const [newCargo, setNewCargo] = useState({
     nama_pengirim: '',
     nama_penerima: '',
-    no_telepon: '',
+    no_telepon: '+62',
     kota_asal: '',
     kota_tujuan: '',
     jenis_pengiriman: 'Biasa',
