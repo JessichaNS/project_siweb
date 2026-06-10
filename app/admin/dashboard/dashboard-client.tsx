@@ -1,28 +1,25 @@
 "use client";
 
 import styles from './dash.module.css';
+import mapStyles from './dashmap.module.css';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 type DashboardData = {
-  // Vessel Stats
   totalVessels: number;
   enRoute: number;
   inPort: number;
   maintenance: number;
   delayed: number;
   avgFuel: number;
-  // Cargo Stats
   totalShipments: number;
   completed: number;
   inTransit: number;
   processing: number;
   totalRevenue: number;
-  // Monthly
   monthlyCargoIn: number;
   monthlyCargoTarget: number;
-  // Delivery
   avgSpeed: number;
   speedGrowth: number;
 };
@@ -34,80 +31,99 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
 
-useEffect(() => {
-  const role = localStorage.getItem("role");
+  // Zoom state
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const isDragging = useRef(false);
+  const lastPos = useRef({ x: 0, y: 0 });
 
-  if (role !== "admin") {
-    setAccessDenied(true);
-    return;
-  }
+  const MIN_ZOOM = 1;
+  const MAX_ZOOM = 4;
 
-  fetchDashboardData();
-}, []);
+  const handleZoomIn = () => setZoom(z => Math.min(z + 0.4, MAX_ZOOM));
+  const handleZoomOut = () => {
+    setZoom(z => {
+      const next = Math.max(z - 0.4, MIN_ZOOM);
+      if (next === MIN_ZOOM) setPan({ x: 0, y: 0 });
+      return next;
+    });
+  };
+  const handleReset = () => { setZoom(1); setPan({ x: 0, y: 0 }); };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoom <= 1) return;
+    isDragging.current = true;
+    lastPos.current = { x: e.clientX, y: e.clientY };
+  };
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging.current) return;
+    const dx = e.clientX - lastPos.current.x;
+    const dy = e.clientY - lastPos.current.y;
+    lastPos.current = { x: e.clientX, y: e.clientY };
+    setPan(p => ({ x: p.x + dx, y: p.y + dy }));
+  };
+  const handleMouseUp = () => { isDragging.current = false; };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.deltaY < 0) handleZoomIn();
+    else handleZoomOut();
+  };
+
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    if (role !== "admin") {
+      setAccessDenied(true);
+      setLoading(false);
+      return;
+    }
+    fetchDashboardData();
+  }, []);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      
-      // Fetch vessels
-      const vesselsRes = await fetch('/api/vessels?limit=20');
+      const vesselsRes = await fetch('/api/vessels?limit=999');
       const vesselsData = await vesselsRes.json();
       const vessels = vesselsData.vessels || [];
 
-      // Fetch cargo
-      const cargoRes = await fetch('/api/pengiriman?limit=20');
+      const cargoRes = await fetch('/api/pengiriman?limit=999');
       const cargoData = await cargoRes.json();
       const cargo = cargoData.pengiriman || [];
 
-      // VESSEL STATS
       const enRoute = vessels.filter((v: any) => v.status === 'En Route').length;
       const inPort = vessels.filter((v: any) => v.status === 'In Port').length;
       const maintenance = vessels.filter((v: any) => v.status === 'Maintenance').length;
       const delayed = vessels.filter((v: any) => v.status === 'Delayed').length;
       const totalVessels = vessels.length;
-      
-      const avgFuel = vessels.length > 0 
+
+      const avgFuel = vessels.length > 0
         ? Math.round(vessels.reduce((sum: number, v: any) => sum + (v.fuel || 0), 0) / vessels.length)
         : 0;
 
-      // CARGO STATS
       const completed = cargo.filter((c: any) => c.status === 'Selesai').length;
       const inTransit = cargo.filter((c: any) => c.status === 'Dikirim').length;
       const processing = cargo.filter((c: any) => c.status === 'Diproses').length;
       const totalShipments = cargo.length;
-      const totalRevenue = cargo.reduce((sum: number, c: any) => sum + (Number(c.tarif) || 0), 0);
+      const totalRevenue = cargo.reduce((sum: number, c: any) => sum + (c.tarif || 0), 0);
 
-      // MONTHLY CARGO
       const currentMonth = new Date().getMonth();
       const monthlyCargo = cargo
         .filter((c: any) => new Date(c.tanggal_transaksi).getMonth() === currentMonth)
-        .reduce((sum: number, c: any) => sum + (Number(c.tarif) || 0), 0);
-      
+        .reduce((sum: number, c: any) => sum + (c.tarif || 0), 0);
+
       const monthlyCargoIn = Math.round(monthlyCargo / 1000000);
       const monthlyCargoTarget = 1000;
-
-      // DELIVERY SPEED
       const avgSpeed = 22.5 + (completed / Math.max(totalShipments, 1)) * 5;
       const speedGrowth = Math.round((avgSpeed / 20 - 1) * 100);
 
       setData({
-        totalVessels,
-        enRoute,
-        inPort,
-        maintenance,
-        delayed,
-        avgFuel,
-        totalShipments,
-        completed,
-        inTransit,
-        processing,
-        totalRevenue,
-        monthlyCargoIn,
-        monthlyCargoTarget,
+        totalVessels, enRoute, inPort, maintenance, delayed, avgFuel,
+        totalShipments, completed, inTransit, processing, totalRevenue,
+        monthlyCargoIn, monthlyCargoTarget,
         avgSpeed: Math.round(avgSpeed * 10) / 10,
         speedGrowth,
       });
-
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -118,6 +134,7 @@ useEffect(() => {
   const handleLogout = () => {
     localStorage.removeItem('role');
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
     sessionStorage.clear();
     router.push('/login');
   };
@@ -125,46 +142,40 @@ useEffect(() => {
   const cargoPercentage = data ? Math.min(Math.round((data.monthlyCargoIn / data.monthlyCargoTarget) * 100), 100) : 0;
   const completedPercentage = data && data.totalShipments > 0 ? Math.round((data.completed / data.totalShipments) * 100) : 0;
 
-  if (loading) {
-    if (accessDenied) {
-  return (
-    <div className={styles.errorContainer}>
-      <div className={styles.errorGlow}></div>
-
-      <div className={styles.errorCard}>
-        <h1 className={styles.errorCode}>401</h1>
-
-        <h2 className={styles.errorTitle}>
-          Akses Ditolak
-        </h2>
-
-        <p className={styles.errorText}>
-          Anda harus login sebagai Administrator
-          untuk mengakses halaman ini.
-        </p>
-
-        <button
-          className={styles.errorButton}
-          onClick={() => router.push('/login')}
-        >
-          Login Sekarang
-        </button>
+  if (accessDenied) {
+    return (
+      <div className={styles.errorContainer}>
+        <div className={styles.errorGlow}></div>
+        <div className={styles.errorCard}>
+          <h1 className={styles.errorCode}>401</h1>
+          <h2 className={styles.errorTitle}>Akses Ditolak</h2>
+          <p className={styles.errorText}>Anda harus login sebagai Administrator untuk mengakses halaman ini.</p>
+          <button className={styles.errorButton} onClick={() => router.push('/login')}>Login Sekarang</button>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
+
+  if (loading) {
+    return (
+      <main className={styles.container}>
+        <div className={styles.loadingWrapper}>
+          <div className={styles.loadingSpinner}></div>
+          <p>Loading dashboard data...</p>
+        </div>
+      </main>
+    );
   }
 
   if (!data) {
-  return (
-    <main className={styles.container}>
-      <div className={styles.loadingWrapper}>
-        <div className={styles.loadingSpinner}></div>
-        <p>Loading dashboard data...</p>
-      </div>
-    </main>
-  );
-}
+    return (
+      <main className={styles.container}>
+        <div className={styles.loadingWrapper}>
+          <p>Failed to load data. Please refresh the page.</p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className={styles.container}>
@@ -174,7 +185,6 @@ useEffect(() => {
             <img src="/shipylogo.jpeg" alt="Shipy Logo" className={styles.logoImage} />
           </div>
         </div>
-
         <nav className={styles.nav}>
           <Link href="/admin/dashboard" className={`${styles.navItem} ${styles.active}`}>Dashboard</Link>
           <Link href="/admin/fleet" className={styles.navItem}>Fleet</Link>
@@ -182,81 +192,74 @@ useEffect(() => {
           <Link href="/admin/map" className={styles.navItem}>Map</Link>
           <Link href="/admin/analytic" className={styles.navItem}>Analytic</Link>
         </nav>
-
         <div className={styles.userBox}>
           <div className={styles.userInfo}>
             <span className={styles.userName}>Admin</span>
             <span className={styles.userRole}>Administrator</span>
           </div>
-          <div 
-            className={styles.userIcon}
-            onClick={() => setIsLogoutModalOpen(true)}
-            style={{ cursor: 'pointer' }}
-          >
+          <div className={styles.userIcon} onClick={() => setIsLogoutModalOpen(true)} style={{ cursor: 'pointer' }}>
             <img src="/profile.png" alt="Admin" className={styles.userImage} />
           </div>
         </div>
       </header>
 
-      {/* SUMMARY BAR - SAMA PERSIS DENGAN USER */}
       <section className={styles.summaryBar}>
+        <div className={styles.summaryItem}><span>Total Vessels</span><strong>{data.totalVessels}</strong></div>
+        <div className={styles.summaryItem}><span>Completed</span><strong>{data.completed}</strong></div>
+        <div className={styles.summaryItem}><span>En Route</span><strong>{data.enRoute}</strong></div>
+        <div className={styles.summaryItem}><span>Shipments</span><strong>{data.totalShipments}</strong></div>
         <div className={styles.summaryItem}>
-          <span>🚢 Total Vessels</span>
-          <strong>{data.totalVessels}</strong>
-        </div>
-        <div className={styles.summaryItem}>
-          <span>✅ Completed</span>
-          <strong>{data.completed}</strong>
-        </div>
-        <div className={styles.summaryItem}>
-          <span>🚚 En Route</span>
-          <strong>{data.enRoute}</strong>
-        </div>
-        <div className={styles.summaryItem}>
-          <span>📦 Shipments</span>
-          <strong>{data.totalShipments}</strong>
-        </div>
-        <div className={styles.summaryItem}>
-          <span>💰 Revenue</span>
-          <strong>
-            {data.totalRevenue > 0 
-              ? `Rp ${(data.totalRevenue / 1000000).toLocaleString('id-ID', { minimumFractionDigits: 1 })}M`
-              : 'Rp 0'}
-          </strong>
+          <span>Revenue</span>
+          <strong>{data.totalRevenue > 0 ? `Rp ${(data.totalRevenue / 1000000).toLocaleString('id-ID', { minimumFractionDigits: 1 })}M` : 'Rp 0'}</strong>
         </div>
       </section>
 
-      {/* MAIN GRID - SAMA PERSIS DENGAN USER */}
       <section className={styles.grid}>
         {/* CARD 1: Monthly Cargo In */}
         <div className={styles.cargoCard}>
           <h3>📦 Monthly Cargo In</h3>
           <div className={styles.progressWrap}>
-            <div className={styles.progressHeader}>
-              <strong>{cargoPercentage}%</strong>
-            </div>
+            <div className={styles.progressHeader}><strong>{cargoPercentage}%</strong></div>
             <div className={styles.progressBar}>
               <div className={styles.progressFill} style={{ width: `${cargoPercentage}%` }}></div>
             </div>
-            <p className={styles.smallText}>
-              {data.monthlyCargoIn.toLocaleString()} / {data.monthlyCargoTarget.toLocaleString()}
-              <br />
-              Ton
-            </p>
+            <p className={styles.smallText}>{data.monthlyCargoIn.toLocaleString()} / {data.monthlyCargoTarget.toLocaleString()}<br />Ton</p>
           </div>
-          <p className={styles.greenText}>
-            {cargoPercentage}% ↑ from last month
-          </p>
+          <p className={styles.greenText}>{cargoPercentage}% ↑ from last month</p>
         </div>
 
-        {/* CARD 2: World Map */}
-        <div className={styles.mapCard}>
-          <img src="/map siweb.jpeg" alt="World Map" className={styles.mapImage} />
-          <div className={`${styles.dot} ${styles.red}`}></div>
-          <div className={`${styles.dot} ${styles.green}`}></div>
-          <div className={`${styles.dot} ${styles.yellow}`}></div>
-          <div className={`${styles.dot} ${styles.blueOne}`}></div>
-          <div className={`${styles.dot} ${styles.blueTwo}`}></div>
+        {/* CARD 2: Map dengan Zoom */}
+        <div className={mapStyles.mapCard}>
+          {/* Tombol zoom */}
+          <div className={mapStyles.zoomControls}>
+            <button onClick={handleZoomIn} className={mapStyles.zoomBtn} title="Zoom In">+</button>
+            <button onClick={handleReset} className={mapStyles.zoomBtn} title="Reset">⟳</button>
+            <button onClick={handleZoomOut} className={mapStyles.zoomBtn} title="Zoom Out">−</button>
+          </div>
+
+          {/* Area map */}
+          <div
+            className={mapStyles.mapViewport}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onWheel={handleWheel}
+            style={{ cursor: zoom > 1 ? 'grab' : 'default' }}
+          >
+            <div
+              className={mapStyles.mapInner}
+              style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}
+            >
+              <img src="/map siweb.jpeg" alt="World Map" className={mapStyles.mapImage} />
+              <div className={`${styles.dot} ${styles.red}`}></div>
+              <div className={`${styles.dot} ${styles.green}`}></div>
+              <div className={`${styles.dot} ${styles.yellow}`}></div>
+              <div className={`${styles.dot} ${styles.blueOne}`}></div>
+              <div className={`${styles.dot} ${styles.blueTwo}`}></div>
+            </div>
+          </div>
+
           <div className={styles.mapBadge}>
             <span>{data.enRoute} Active Vessels</span>
           </div>
@@ -266,18 +269,10 @@ useEffect(() => {
         <div className={styles.statusCard}>
           <h3>📊 Fleet Status Overview</h3>
           <div className={styles.statusBars}>
-            <div className={styles.statusBar}>
-              <div className={`${styles.fill} ${styles.fillBlue}`} style={{ width: `${(data.enRoute / data.totalVessels) * 100}%` }}></div>
-            </div>
-            <div className={styles.statusBar}>
-              <div className={`${styles.fill} ${styles.fillGreen}`} style={{ width: `${(data.inPort / data.totalVessels) * 100}%` }}></div>
-            </div>
-            <div className={styles.statusBar}>
-              <div className={`${styles.fill} ${styles.fillYellow}`} style={{ width: `${(data.delayed / data.totalVessels) * 100}%` }}></div>
-            </div>
-            <div className={styles.statusBar}>
-              <div className={`${styles.fill} ${styles.fillRed}`} style={{ width: `${(data.maintenance / data.totalVessels) * 100}%` }}></div>
-            </div>
+            <div className={styles.statusBar}><div className={`${styles.fill} ${styles.fillBlue}`} style={{ width: `${data.totalVessels > 0 ? (data.enRoute / data.totalVessels) * 100 : 0}%` }}></div></div>
+            <div className={styles.statusBar}><div className={`${styles.fill} ${styles.fillGreen}`} style={{ width: `${data.totalVessels > 0 ? (data.inPort / data.totalVessels) * 100 : 0}%` }}></div></div>
+            <div className={styles.statusBar}><div className={`${styles.fill} ${styles.fillYellow}`} style={{ width: `${data.totalVessels > 0 ? (data.delayed / data.totalVessels) * 100 : 0}%` }}></div></div>
+            <div className={styles.statusBar}><div className={`${styles.fill} ${styles.fillRed}`} style={{ width: `${data.totalVessels > 0 ? (data.maintenance / data.totalVessels) * 100 : 0}%` }}></div></div>
           </div>
           <div className={styles.legend}>
             <span><i className={styles.legendBlue}></i>En Route ({data.enRoute})</span>
@@ -341,7 +336,6 @@ useEffect(() => {
         {/* CARD 6: Alerts */}
         <div className={styles.alertsCard}>
           <h3>⚠️ ALERTS</h3>
-          
           {data.avgFuel < 50 && (
             <div className={`${styles.alertBox} ${styles.alertRed}`}>
               <div className={styles.alertInner}>
@@ -353,7 +347,6 @@ useEffect(() => {
               </div>
             </div>
           )}
-          
           <div className={`${styles.alertBox} ${styles.alertYellow}`}>
             <div className={styles.alertInner}>
               <div className={styles.alertLeft}>
@@ -363,7 +356,6 @@ useEffect(() => {
               <p>{data.completed} completed this month</p>
             </div>
           </div>
-          
           <div className={`${styles.alertBox} ${styles.alertBrown}`}>
             <div className={styles.alertInner}>
               <div className={styles.alertLeft}>
@@ -376,7 +368,6 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* Logout Modal */}
       {isLogoutModalOpen && (
         <div className={styles.modalOverlay} onClick={() => setIsLogoutModalOpen(false)}>
           <div className={styles.logoutModal} onClick={(e) => e.stopPropagation()}>

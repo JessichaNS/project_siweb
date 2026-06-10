@@ -1,0 +1,66 @@
+.mapCard {
+    grid-area: map;
+    position: relative;
+    height: 250px;
+    overflow: hidden;
+    border-radius: 22px;
+    background: #2a1147;
+    border: 2px solid #4f38ff;
+    user-select: none;
+  }
+  
+  .mapViewport {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .mapInner {
+    width: 100%;
+    height: 100%;
+    transform-origin: center center;
+    transition: transform 0.15s ease;
+    position: relative;
+  }
+  
+  .mapImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: brightness(0.95) contrast(1.08);
+    pointer-events: none;
+  }
+  
+  .zoomControls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 10;
+  }
+  
+  .zoomBtn {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(42, 17, 71, 0.85);
+    border: 1px solid #6d4cff;
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    line-height: 1;
+    padding: 0;
+  }
+  
+  .zoomBtn:hover {
+    background: #6d4cff;
+  }

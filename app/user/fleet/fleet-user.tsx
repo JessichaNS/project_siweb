@@ -135,30 +135,6 @@ export default function FleetUserPage() {
             />
           </div>
 
-          <div className={styles.statsRow}>
-            <div className={styles.statMiniCard}>
-              <span className={styles.statEmoji}>🚢</span>
-              <div>
-                <strong>{vessels.length}</strong>
-                <p>Active Vessels</p>
-              </div>
-            </div>
-            <div className={styles.statMiniCard}>
-              <span className={styles.statEmoji}>⛽</span>
-              <div>
-                <strong>{Math.round(vessels.reduce((acc, v) => acc + v.fuel, 0) / vessels.length || 0)}%</strong>
-                <p>Avg Fuel</p>
-              </div>
-            </div>
-            <div className={styles.statMiniCard}>
-              <span className={styles.statEmoji}>📍</span>
-              <div>
-                <strong>{vessels.filter(v => v.status === 'En Route').length}</strong>
-                <p>En Route</p>
-              </div>
-            </div>
-          </div>
-
           <div className={styles.vesselGrid}>
             {loading ? (
               <p className={styles.loadingText}>Loading vessels...</p>

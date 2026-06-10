@@ -16,7 +16,15 @@ type Cargo = {
   jenis_pengiriman: string;
   status: string;
   tarif: number;
+  berat?: number;
   catatan_barang: string;
+};
+
+type Summary = {
+  total_shipments: number;
+  total_value: number;
+  completed: number;
+  in_transit: number;
 };
 
 type Toast = {
@@ -34,12 +42,41 @@ export default function CargoUserPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [toast, setToast] = useState<Toast>({ show: false, message: '', type: 'success' });
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  const [summary, setSummary] = useState<Summary>({
+    total_shipments: 0,
+    total_value: 0,
+    completed: 0,
+    in_transit: 0,
+  });
+
+  const [newCargo, setNewCargo] = useState({
+    nama_pengirim: '',
+    nama_penerima: '',
+    no_telepon: '',
+    kota_asal: '',
+    kota_tujuan: '',
+    jenis_pengiriman: 'Biasa',
+    berat: '',
+    tarif: 0,
+    catatan_barang: '',
+  });
+
+  // Hitung tarif otomatis
+  useEffect(() => {
+    const beratNum = Number(newCargo.berat) || 0;
+    let hargaPerKg = 10000;
+    if (newCargo.jenis_pengiriman === 'Cepat') hargaPerKg = 15000;
+    else if (newCargo.jenis_pengiriman === 'VVIP') hargaPerKg = 20000;
+    const totalTarif = beratNum * hargaPerKg;
+    setNewCargo((prev) => prev.tarif !== totalTarif ? { ...prev, tarif: totalTarif } : prev);
+  }, [newCargo.berat, newCargo.jenis_pengiriman]);
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ show: true, message, type });
-    setTimeout(() => {
-      setToast({ show: false, message: '', type: 'success' });
-    }, 3000);
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
   };
 
   useEffect(() => {
@@ -50,14 +87,21 @@ export default function CargoUserPage() {
     }
   }, [router]);
 
+  // ✅ getCargo bersih — ambil juga summary dari response
   const getCargo = async () => {
     try {
-      const res = await fetch(
-        `/api/pengiriman?search=${search}&page=${page}&limit=4`
-      );
+      const res = await fetch(`/api/pengiriman?search=${search}&page=${page}&limit=4`);
       const data = await res.json();
       setCargo(data.pengiriman || []);
       setTotalPages(data.totalPages || 1);
+
+      // ✅ Set summary dari database
+      if (data.summary) setSummary(data.summary);
+
+      if (selected) {
+        const updatedSelected = data.pengiriman?.find((c: Cargo) => c.id === selected.id);
+        if (updatedSelected) setSelected(updatedSelected);
+      }
     } catch (error) {
       console.error('Error fetching cargo:', error);
       showToast('Gagal memuat data cargo', 'error');
@@ -97,10 +141,56 @@ export default function CargoUserPage() {
     router.push('/login');
   };
 
-  const totalShipments = cargo.length;
-  const totalValue = cargo.reduce((sum, item) => sum + item.tarif, 0);
-  const completedShipments = cargo.filter(item => item.status === 'Selesai').length;
-  const inTransit = cargo.filter(item => item.status === 'Dikirim').length;
+  // ✅ Validasi ada di sini, bukan di getCargo
+  const handleAddCargo = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const validationErrors: Record<string, string> = {};
+    if (!newCargo.nama_pengirim.trim()) validationErrors.nama_pengirim = "Nama pengirim wajib diisi";
+    if (!newCargo.nama_penerima.trim()) validationErrors.nama_penerima = "Nama penerima wajib diisi";
+    if (!newCargo.no_telepon.trim()) validationErrors.no_telepon = "Nomor telepon wajib diisi";
+    if (!newCargo.kota_asal.trim()) validationErrors.kota_asal = "Kota asal wajib diisi";
+    if (!newCargo.kota_tujuan.trim()) validationErrors.kota_tujuan = "Kota tujuan wajib diisi";
+    if (!newCargo.berat || Number(newCargo.berat) <= 0) validationErrors.berat = "Berat barang harus lebih dari 0";
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    setErrors({});
+
+    try {
+      const payload = { ...newCargo, berat: Number(newCargo.berat), status: 'Diproses' };
+      const res = await fetch('/api/pengiriman', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        showToast('Cargo berhasil ditambahkan!', 'success');
+        setIsAddModalOpen(false);
+        setNewCargo({
+          nama_pengirim: '',
+          nama_penerima: '',
+          no_telepon: '',
+          kota_asal: '',
+          kota_tujuan: '',
+          jenis_pengiriman: 'Biasa',
+          berat: '',
+          tarif: 0,
+          catatan_barang: '',
+        });
+        getCargo();
+      } else {
+        const errorData = await res.json();
+        showToast(errorData.message || 'Gagal menambahkan cargo', 'error');
+      }
+    } catch (error) {
+      console.error('Error adding cargo:', error);
+      showToast('Terjadi kesalahan pada server', 'error');
+    }
+  };
 
   return (
     <main className={styles.container}>
@@ -123,7 +213,7 @@ export default function CargoUserPage() {
             <span className={styles.userName}>User</span>
             <span className={styles.userRole}>View Only</span>
           </div>
-          <div 
+          <div
             className={styles.userIcon}
             onClick={() => setIsLogoutModalOpen(true)}
             style={{ cursor: 'pointer' }}
@@ -137,45 +227,23 @@ export default function CargoUserPage() {
         <section className={styles.leftPanel}>
           <div className={styles.leftHeader}>
             <h2>Cargo Shipments</h2>
-            <input
-              className={styles.search}
-              placeholder="🔍 Search by resi / pengirim / penerima..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-            />
-          </div>
-
-          <div className={styles.statsRow}>
-            <div className={styles.statMiniCard}>
-              <span className={styles.statEmoji}>📦</span>
-              <div>
-                <strong>{totalShipments}</strong>
-                <p>Total Shipments</p>
-              </div>
-            </div>
-            <div className={styles.statMiniCard}>
-              <span className={styles.statEmoji}>💰</span>
-              <div>
-                <strong>Rp {totalValue.toLocaleString()}</strong>
-                <p>Total Value</p>
-              </div>
-            </div>
-            <div className={styles.statMiniCard}>
-              <span className={styles.statEmoji}>✅</span>
-              <div>
-                <strong>{completedShipments}</strong>
-                <p>Completed</p>
-              </div>
-            </div>
-            <div className={styles.statMiniCard}>
-              <span className={styles.statEmoji}>🚚</span>
-              <div>
-                <strong>{inTransit}</strong>
-                <p>In Transit</p>
-              </div>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <input
+                className={styles.search}
+                placeholder="🔍 Search by resi / pengirim / penerima..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+              />
+              <button
+                className={styles.submitBtn}
+                onClick={() => setIsAddModalOpen(true)}
+                style={{ padding: '12px 20px', margin: 0, borderRadius: '18px' }}
+              >
+                + Tambah Cargo
+              </button>
             </div>
           </div>
 
@@ -289,6 +357,10 @@ export default function CargoUserPage() {
                     </span>
                   </div>
                   <div className={styles.infoRow}>
+                    <span className={styles.infoLabel}>Berat Barang</span>
+                    <span className={styles.infoValue}>{selected.berat ? `${selected.berat} kg` : '-'}</span>
+                  </div>
+                  <div className={styles.infoRow}>
                     <span className={styles.infoLabel}>Tarif</span>
                     <span className={styles.infoValue}>Rp {selected.tarif.toLocaleString()}</span>
                   </div>
@@ -316,12 +388,148 @@ export default function CargoUserPage() {
             <div className={styles.emptyDetail}>
               <div className={styles.emptyIcon}>📦</div>
               <h3>No Cargo Selected</h3>
-              <div className={styles.emptyTips}>
-              </div>
+              <div className={styles.emptyTips}></div>
             </div>
           )}
         </aside>
       </section>
+
+      {/* MODAL TAMBAH CARGO */}
+      {isAddModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setIsAddModalOpen(false)}>
+          <div className={styles.addModal} onClick={(e) => e.stopPropagation()} style={{ width: '500px' }}>
+            <h2>📦 Tambah Cargo Baru</h2>
+            <form onSubmit={handleAddCargo}>
+              <div className={styles.modalFormGrid}>
+                <div className={styles.formColumn}>
+                  <div className={styles.formGroup}>
+                    <label>Nama Pengirim</label>
+                    <input
+                      value={newCargo.nama_pengirim}
+                      onChange={(e) => {
+                        setNewCargo({ ...newCargo, nama_pengirim: e.target.value });
+                        setErrors({ ...errors, nama_pengirim: "" });
+                      }}
+                      placeholder='Contoh: Budi Esa'
+                    />
+                    {errors.nama_pengirim && <span className={styles.errorText}>{errors.nama_pengirim}</span>}
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label>Nama Penerima</label>
+                    <input
+                      value={newCargo.nama_penerima}
+                      onChange={(e) => {
+                        setNewCargo({ ...newCargo, nama_penerima: e.target.value });
+                        setErrors({ ...errors, nama_penerima: "" });
+                      }}
+                      placeholder='Contoh: Andi Santoso'
+                    />
+                    {errors.nama_penerima && <span className={styles.errorText}>{errors.nama_penerima}</span>}
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label>No Telepon</label>
+                    <input
+                      value={newCargo.no_telepon}
+                      onChange={(e) => {
+                        setNewCargo({ ...newCargo, no_telepon: e.target.value });
+                        setErrors({ ...errors, no_telepon: "" });
+                      }}
+                      placeholder='Contoh: 08xxxxxxxxxx'
+                    />
+                    {errors.no_telepon && <span className={styles.errorText}>{errors.no_telepon}</span>}
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label>Catatan Barang</label>
+                    <input
+                      value={newCargo.catatan_barang}
+                      onChange={e => setNewCargo({ ...newCargo, catatan_barang: e.target.value })}
+                      placeholder="Opsional"
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.formColumn}>
+                  <div className={styles.formGroup}>
+                    <label>Kota Asal</label>
+                    <input
+                      value={newCargo.kota_asal}
+                      onChange={(e) => {
+                        setNewCargo({ ...newCargo, kota_asal: e.target.value });
+                        setErrors({ ...errors, kota_asal: "" });
+                      }}
+                      placeholder="Contoh: Jakarta"
+                    />
+                    {errors.kota_asal && <span className={styles.errorText}>{errors.kota_asal}</span>}
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label>Kota Tujuan</label>
+                    <input
+                      value={newCargo.kota_tujuan}
+                      onChange={(e) => {
+                        setNewCargo({ ...newCargo, kota_tujuan: e.target.value });
+                        setErrors({ ...errors, kota_tujuan: "" });
+                      }}
+                      placeholder="Contoh: Bandung"
+                    />
+                    {errors.kota_tujuan && <span className={styles.errorText}>{errors.kota_tujuan}</span>}
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label>Jenis Pengiriman</label>
+                    <select
+                      value={newCargo.jenis_pengiriman}
+                      onChange={e => setNewCargo({ ...newCargo, jenis_pengiriman: e.target.value })}
+                    >
+                      <option value="Biasa">Biasa</option>
+                      <option value="Cepat">Cepat</option>
+                      <option value="VVIP">VVIP</option>
+                    </select>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label>Berat Barang (kg)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      step="0.1"
+                      value={newCargo.berat}
+                      onChange={(e) => {
+                        setNewCargo({ ...newCargo, berat: e.target.value });
+                        setErrors({ ...errors, berat: "" });
+                      }}
+                      placeholder="Contoh: 5"
+                    />
+                    {errors.berat && <span className={styles.errorText}>{errors.berat}</span>}
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label>Tarif Otomatis</label>
+                    <input
+                      readOnly
+                      type="text"
+                      value={`Rp ${newCargo.tarif.toLocaleString()}`}
+                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed', color: '#666', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.modalButtons}>
+                <button type="button" className={styles.cancelBtn} onClick={() => setIsAddModalOpen(false)}>
+                  Batal
+                </button>
+                <button type="submit" className={styles.submitBtn}>
+                  Simpan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {isLogoutModalOpen && (
         <div className={styles.modalOverlay} onClick={() => setIsLogoutModalOpen(false)}>

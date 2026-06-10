@@ -238,7 +238,8 @@
 }
 
 .addModal {
-  width: 360px;
+  width: 600px; /* Ukuran lebar agar 2 kolom muat */
+  max-width: 90vw;
   background: #2a0d45;
   border: 2px solid #5f37ff;
   border-radius: 18px;
@@ -255,11 +256,18 @@
 .addModal select {
   width: 100%;
   padding: 12px;
-  margin-bottom: 10px;
-  background: #1b082e;
+  background: #2d1048; /* Warna latar konsisten */
   color: white;
-  border: 1px solid #5f37ff;
-  border-radius: 10px;
+  border: 1.5px solid #5f37ff;
+  border-radius: 12px;
+  outline: none;
+}
+
+.addModal input[readOnly] {
+  background: #240d3a !important; 
+  color: #a07eff !important;
+  cursor: not-allowed;
+  font-weight: bold;
 }
 
 .modalButtons {
@@ -1044,3 +1052,6 @@
 .toastClose:hover {
   opacity: 1;
 }
+
+.errorText { color: #ff4b7d !important; font-size: 11px !important; margin-top: 4px !important; display: block !important; }
+.inputError { border: 1.5px solid #ff4b7d !important; }

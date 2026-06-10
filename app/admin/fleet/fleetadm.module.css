@@ -579,3 +579,41 @@
   background: #b01818;
   transform: translateY(-1px);
 }
+
+.selected {
+  border: 2px solid #a855f7;
+}
+
+.deleteButton {
+  margin-top: 12px;
+  width: 100%;
+  padding: 8px;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.deleteButton:hover {
+  background: #b91c1c;
+}
+
+.selected {
+  border: 2px solid #a855f7;
+}
+
+.deleteButton {
+  margin-top: 12px;
+  width: 100%;
+  padding: 8px;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.deleteButton:hover {
+  background: #b91c1c;
+}

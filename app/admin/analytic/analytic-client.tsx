@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './analytic.module.css';
 
-
 type Vessel = {
   id: number;
   name: string;
@@ -16,7 +15,6 @@ type Vessel = {
 
 const getVesselMetadata = (vessel: Vessel) => {
   const id = vessel.id || 1;
-  const name = vessel.name || "KM Kelud";
 
   const pseudoRandom = (seed: number) => {
     const x = Math.sin(seed) * 10000;
@@ -48,24 +46,11 @@ const getVesselMetadata = (vessel: Vessel) => {
   ];
   const weather = weatherLocations[id % weatherLocations.length];
 
-  const routes = [
-    "Laut Jawa",
-    "Selat Sunda",
-    "Selat Makassar",
-    "Laut Banda",
-    "Laut Flores",
-    "Selat Bali",
-    "Laut Arafura",
-    "Laut Maluku"
-  ];
-  const locationText = routes[id % routes.length];
-
   const hour = 10 + (id % 12);
   const minuteStr = (id * 15) % 60 === 0 ? "00" : String((id * 15) % 60);
   const etaText = `ETA: April 7, ${hour}:${minuteStr}`;
 
   return {
-    location: locationText,
     eta: etaText,
     speed: `${speedVal} knots`,
     fuelLevel: fuelVal,
@@ -77,12 +62,12 @@ const getVesselMetadata = (vessel: Vessel) => {
 };
 
 const defaultVessels: Vessel[] = [
-  { id: 1, name: "KM Kelud", status: "In Port", location: "Laut Jawa", fuel: 80 },
-  { id: 2, name: "KM Dorolonda", status: "En Route", location: "Selat Sunda", fuel: 65 },
-  { id: 3, name: "KM Gunung Dempo", status: "In Port", location: "Selat Makassar", fuel: 75 },
-  { id: 4, name: "KM Sinabung", status: "Delayed", location: "Laut Banda", fuel: 40 },
-  { id: 5, name: "KM Ciremai", status: "Maintenance", location: "Laut Flores", fuel: 55 },
-  { id: 6, name: "KM Dobonsolo", status: "In Port", location: "Selat Bali", fuel: 90 }
+  { id: 1, name: "KM Kelud", status: "In Port", location: "Pelabuhan Tanjung Perak, Surabaya", fuel: 80 },
+  { id: 2, name: "KM Dorolonda", status: "En Route", location: "Pelabuhan Makassar", fuel: 65 },
+  { id: 3, name: "KM Gunung Dempo", status: "In Port", location: "Pelabuhan Belawan, Medan", fuel: 75 },
+  { id: 4, name: "KM Sinabung", status: "Delayed", location: "Pelabuhan Tanjung Priok, Jakarta", fuel: 40 },
+  { id: 5, name: "KM Ciremai", status: "Maintenance", location: "Pelabuhan Tanjung Priok, Jakarta", fuel: 55 },
+  { id: 6, name: "KM Dobonsolo", status: "In Port", location: "Pelabuhan Makassar", fuel: 90 }
 ];
 
 export default function AnalyticPage() {
@@ -99,10 +84,8 @@ export default function AnalyticPage() {
         setLoading(true);
         const res = await fetch('/api/map', { cache: 'no-store' });
         const data = await res.json();
-        
         const list: Vessel[] = data.vessels && data.vessels.length > 0 ? data.vessels : defaultVessels;
         setVessels(list);
-        
         const initialSelected = list.find(v => v.name === "KM Kelud") || list[0] || null;
         setSelected(initialSelected);
       } catch (err) {
@@ -117,29 +100,23 @@ export default function AnalyticPage() {
   }, []);
 
   useEffect(() => {
-  const role = localStorage.getItem("role");
+    const role = localStorage.getItem("role");
+    if (role !== "admin") {
+      alert("Anda harus login sebagai Admin!");
+      setTimeout(() => { router.push("/login"); }, 1000);
+    }
+  }, []);
 
-  if (role !== "admin") {
-    alert("Anda harus login sebagai Admin!");
-
-    setTimeout(() => {
-      router.push("/login");
-    }, 1000);
-
-    return;
-  }
-}, []);
-
-  const filteredVessels = vessels.filter(vessel => {
-    return vessel.name.toLowerCase().includes(search.toLowerCase());
-  });
+  const filteredVessels = vessels.filter(vessel =>
+    vessel.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   const getBadgeClass = (status: string) => {
     const s = status.toLowerCase();
-    if (s.includes('port') || s.includes('cargo') || s.includes('biasa') || s.includes('in port')) return styles.inPort;
-    if (s.includes('route') || s.includes('en route') || s.includes('jalan')) return styles.enRoute;
-    if (s.includes('maint') || s.includes('perbaikan') || s.includes('maintenance')) return styles.maintenance;
-    if (s.includes('delay') || s.includes('terlambat') || s.includes('delayed')) return styles.delayed;
+    if (s.includes('port') || s.includes('in port')) return styles.inPort;
+    if (s.includes('route') || s.includes('en route')) return styles.enRoute;
+    if (s.includes('maint') || s.includes('maintenance')) return styles.maintenance;
+    if (s.includes('delay') || s.includes('delayed')) return styles.delayed;
     return styles.inPort;
   };
 
@@ -161,16 +138,20 @@ export default function AnalyticPage() {
     }).join(' ');
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('role');
+    sessionStorage.clear();
+    router.push('/login');
+  };
+
   return (
     <main className={styles.container}>
       <header className={styles.topbar}>
         <div className={styles.logoBox}>
           <div className={styles.logo}>
-            <img
-              src="/shipylogo.jpeg"
-              alt="Shipy Logo"
-              className={styles.logoImage}
-            />
+            <img src="/shipylogo.jpeg" alt="Shipy Logo" className={styles.logoImage} />
           </div>
         </div>
 
@@ -187,7 +168,7 @@ export default function AnalyticPage() {
             <span className={styles.userName}>Admin</span>
             <span className={styles.userRole}>Administrator</span>
           </div>
-          <div 
+          <div
             className={styles.userIcon}
             onClick={() => setIsLogoutModalOpen(true)}
             style={{ cursor: 'pointer' }}
@@ -195,7 +176,7 @@ export default function AnalyticPage() {
             <img src="/profile.png" alt="Admin" className={styles.userImage} />
           </div>
         </div>
-        </header>
+      </header>
 
       <section className={styles.content}>
         <aside className={styles.sidebar}>
@@ -216,27 +197,20 @@ export default function AnalyticPage() {
             ) : (
               filteredVessels.map((vessel) => {
                 const vesselMeta = getVesselMetadata(vessel);
-                let displayStatus = vessel.status;
-                if (vessel.status === 'Cargo' || vessel.status === 'Cargo' || displayStatus === 'Indonesia') {
-                  const statuses = ["In Port", "En Route", "In Port", "Delayed", "Maintenance", "In Port"];
-                  displayStatus = statuses[vessel.id % statuses.length];
-                }
-                
                 return (
                   <div
                     key={vessel.id}
-                    className={`${styles.vesselCard} ${
-                      selected?.id === vessel.id ? styles.selected : ''
-                    }`}
+                    className={`${styles.vesselCard} ${selected?.id === vessel.id ? styles.selected : ''}`}
                     onClick={() => setSelected(vessel)}
                   >
                     <div className={styles.cardTop}>
                       <h3>{vessel.name}</h3>
-                      <span className={`${styles.badge} ${getBadgeClass(displayStatus)}`}>
-                        {displayStatus}
+                      <span className={`${styles.badge} ${getBadgeClass(vessel.status)}`}>
+                        {vessel.status}
                       </span>
                     </div>
-                    <p className={styles.location}>📍 {vesselMeta.location}</p>
+                    {/* ✅ lokasi dari DB */}
+                    <p className={styles.location}>📍 {vessel.location}</p>
                     <small className={styles.eta}>{vesselMeta.eta}</small>
                   </div>
                 );
@@ -267,7 +241,6 @@ export default function AnalyticPage() {
                       </g>
                     );
                   })}
-
                   <polyline
                     fill="none"
                     stroke="#5cdb5c"
@@ -275,30 +248,14 @@ export default function AnalyticPage() {
                     points={getFuelPointsStr(meta.fuelTrend)}
                     className={styles.greenPolyline}
                   />
-
                   {meta.fuelTrend.map((v, idx) => {
                     const xCoords = [50, 115, 180, 245, 310, 375, 440];
                     const y = 205 - (v / 100) * 170;
-                    return (
-                      <circle
-                        key={idx}
-                        cx={xCoords[idx]}
-                        cy={y}
-                        r="4"
-                        fill="#5cdb5c"
-                        stroke="#ffffff"
-                        strokeWidth="1.2"
-                      />
-                    );
+                    return <circle key={idx} cx={xCoords[idx]} cy={y} r="4" fill="#5cdb5c" stroke="#ffffff" strokeWidth="1.2" />;
                   })}
-
                   {["Hari 1", "Hari 2", "Hari 3", "Hari 4", "Hari 5", "Hari 6", "Hari ini"].map((label, idx) => {
                     const xCoords = [50, 115, 180, 245, 310, 375, 440];
-                    return (
-                      <text key={label} x={xCoords[idx]} y="228" textAnchor="middle" className={styles.axisLabelX}>
-                        {label}
-                      </text>
-                    );
+                    return <text key={label} x={xCoords[idx]} y="228" textAnchor="middle" className={styles.axisLabelX}>{label}</text>;
                   })}
                 </svg>
               </div>
@@ -309,10 +266,8 @@ export default function AnalyticPage() {
             <div className={styles.panelCard}>
               <div className={styles.selectedVesselHeader}>
                 <h2>{selected.name}</h2>
-                <span className={`${styles.badge} ${getBadgeClass(
-                  ["In Port", "En Route", "In Port", "Delayed", "Maintenance", "In Port"][selected.id % 6]
-                )}`}>
-                  {["In Port", "En Route", "In Port", "Delayed", "Maintenance", "In Port"][selected.id % 6]}
+                <span className={`${styles.badge} ${getBadgeClass(selected.status)}`}>
+                  {selected.status}
                 </span>
               </div>
 
@@ -336,10 +291,7 @@ export default function AnalyticPage() {
                   </div>
                   <div className={styles.kpiProgressContainer}>
                     <div className={styles.kpiProgressBar}>
-                      <div
-                        className={styles.kpiProgressFill}
-                        style={{ width: `${meta.fuelLevel}%` }}
-                      ></div>
+                      <div className={styles.kpiProgressFill} style={{ width: `${meta.fuelLevel}%` }}></div>
                     </div>
                     <strong className={styles.kpiValue}>{meta.fuelLevel}%</strong>
                   </div>
@@ -370,16 +322,14 @@ export default function AnalyticPage() {
                   <svg viewBox="0 0 24 24" className={styles.weatherPinIcon}>
                     <path fill="currentColor" d="M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2M12,4A5,5 0 0,1 17,9C17,12.42 13.91,17.29 12,19.74C10.09,17.29 7,12.42 7,9A5,5 0 0,1 12,4M12,6A3,3 0 0,0 9,9A3,3 0 0,0 12,12A3,3 0 0,0 15,9A3,3 0 0,0 12,6Z" />
                   </svg>
-                  <span>{meta.weather.location}</span>
+                  {/* ✅ lokasi dari DB */}
+                  <span>{selected?.location || meta.weather.location}</span>
                 </div>
-
                 <div className={styles.weatherRegion}>{meta.weather.region}</div>
-                
                 <div className={styles.weatherTempRow}>
                   <span className={styles.weatherTemp}>{meta.weather.temp}</span>
                   <span className={styles.weatherDegreeCircle}>°</span>
                 </div>
-
                 <div className={styles.weatherDesc}>{meta.weather.desc}</div>
               </div>
             </div>
@@ -406,7 +356,6 @@ export default function AnalyticPage() {
                       </g>
                     );
                   })}
-
                   <polyline
                     fill="none"
                     stroke="#4ba3ff"
@@ -414,30 +363,14 @@ export default function AnalyticPage() {
                     points={getSpeedPointsStr(meta.speedTrend)}
                     className={styles.bluePolyline}
                   />
-
                   {meta.speedTrend.map((v, idx) => {
                     const xCoords = [50, 115, 180, 245, 310, 375, 440];
                     const y = 205 - ((v - 9.5) / 2.5) * 170;
-                    return (
-                      <circle
-                        key={idx}
-                        cx={xCoords[idx]}
-                        cy={y}
-                        r="4"
-                        fill="#4ba3ff"
-                        stroke="#ffffff"
-                        strokeWidth="1.2"
-                      />
-                    );
+                    return <circle key={idx} cx={xCoords[idx]} cy={y} r="4" fill="#4ba3ff" stroke="#ffffff" strokeWidth="1.2" />;
                   })}
-
                   {["Hari 1", "Hari 2", "Hari 3", "Hari 4", "Hari 5", "Hari 6", "Hari ini"].map((label, idx) => {
                     const xCoords = [50, 115, 180, 245, 310, 375, 440];
-                    return (
-                      <text key={label} x={xCoords[idx]} y="228" textAnchor="middle" className={styles.axisLabelX}>
-                        {label}
-                      </text>
-                    );
+                    return <text key={label} x={xCoords[idx]} y="228" textAnchor="middle" className={styles.axisLabelX}>{label}</text>;
                   })}
                 </svg>
               </div>
@@ -445,6 +378,20 @@ export default function AnalyticPage() {
           </div>
         </section>
       </section>
+
+      {/* Logout Confirmation Modal */}
+      {isLogoutModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setIsLogoutModalOpen(false)}>
+          <div className={styles.logoutModal} onClick={(e) => e.stopPropagation()}>
+            <h2>Konfirmasi Logout</h2>
+            <p>Apakah Anda yakin ingin keluar?</p>
+            <div className={styles.logoutButtons}>
+              <button className={styles.cancelLogout} onClick={() => setIsLogoutModalOpen(false)}>Tidak</button>
+              <button className={styles.confirmLogout} onClick={handleLogout}>Ya, Logout</button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

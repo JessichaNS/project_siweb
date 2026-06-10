@@ -17,87 +17,27 @@
   margin: -10px -14px 14px;
 }
 
-.logoBox {
-  display: flex;
-  align-items: center;
-}
+.logoBox { display: flex; align-items: center; }
+.logo { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+.logoImage { width: 40px; height: 40px; object-fit: contain; }
+.nav { display: flex; align-items: center; gap: 18px; }
+.navItem { color: white; text-decoration: none; font-size: 18px; font-weight: 700; padding: 12px 28px; border-radius: 18px; display: inline-block; }
+.active { background: #6d4cff; box-shadow: 0 0 14px rgba(110, 91, 255, 0.35); }
 
-.logo {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+.userBox { display: flex; align-items: center; gap: 12px; padding-left: 18px; border-left: 1px solid rgba(154, 123, 255, 0.45); font-weight: 700; }
+.userIcon { width: 42px; height: 42px; border-radius: 50%; background: #6e5bff; display: flex; align-items: center; justify-content: center; }
+.userImage { width: 20px; height: 20px; object-fit: contain; }
+.userRole { display: block; font-size: 10px; color: #a07eff; }
 
-.logoImage {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-}
-
-.nav {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-.navItem {
-  color: white;
-  text-decoration: none;
-  font-size: 18px;
-  font-weight: 700;
-  padding: 12px 28px;
-  border-radius: 18px;
-  display: inline-block;
-}
-
-.active {
-  background: #6d4cff;
-  box-shadow: 0 0 14px rgba(110, 91, 255, 0.35);
-}
-
-.userBox {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-left: 18px;
-  border-left: 1px solid rgba(154, 123, 255, 0.45);
-  font-weight: 700;
-}
-
-.userIcon {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: #6e5bff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.userImage {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-}
-
-.rightNavSection {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
+.rightNavSection { display: flex; align-items: center; gap: 16px; }
 
 .editButton {
-  background: #6d4cff;
-  color: white;
-  border: none;
-  padding: 14px 24px;
-  border-radius: 12px;
-  font-weight: 700;
+  background: #6d4cff; color: white; border: none;
+  padding: 14px 24px; border-radius: 12px; font-weight: 700; cursor: pointer;
 }
+.editButton:hover { background: #5a3de8; }
 
+/* ── LAYOUT ── */
 .content {
   display: grid;
   grid-template-columns: 280px 1fr;
@@ -112,20 +52,6 @@
   padding: 22px;
 }
 
-.filters {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 18px;
-}
-
-.filters button {
-  background: #4b2a8c;
-  border: 1px solid #8d72ff;
-  color: white;
-  border-radius: 14px;
-  padding: 6px 14px;
-}
-
 .search {
   width: 100%;
   background: #55319d;
@@ -134,6 +60,8 @@
   border-radius: 14px;
   padding: 10px;
   margin-bottom: 18px;
+  box-sizing: border-box;
+  outline: none;
 }
 
 .list {
@@ -150,29 +78,24 @@
   padding: 16px;
   cursor: pointer;
   background: #2c1248;
+  transition: 0.2s;
 }
 
-.selected {
-  background: #5229e8;
-}
+.vesselCard:hover { background: #3a1760; }
+.selected { background: #5229e8 !important; }
 
-.vesselCard h3 {
-  margin: 0 0 8px;
-}
-
+.vesselCard h3 { margin: 0 0 8px; }
 .vesselCard span {
   float: right;
-  background: #2e7dd1;
   padding: 5px 12px;
   border-radius: 14px;
   font-size: 12px;
+  color: white;
+  font-weight: 600;
 }
 
-.mapArea {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
+/* ── MAP AREA ── */
+.mapArea { display: flex; flex-direction: column; gap: 18px; }
 
 .mapBox {
   position: relative;
@@ -181,14 +104,26 @@
   overflow: hidden;
   height: 460px;
   background: black;
+  user-select: none;
+}
+
+/* inner wrapper yang di-zoom/pan */
+.mapInner {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.15s ease;
+  will-change: transform;
 }
 
 .mapImage {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
+  pointer-events: none;
 }
 
+/* ── RADAR PIN ── */
 .radarPin {
   position: absolute;
   width: 18px;
@@ -201,10 +136,7 @@
 
 .radarPinRing {
   position: absolute;
-  top: -10px;
-  left: -10px;
-  right: -10px;
-  bottom: -10px;
+  top: -10px; left: -10px; right: -10px; bottom: -10px;
   border: 2px solid currentColor;
   border-radius: 50%;
   opacity: 0;
@@ -213,16 +145,87 @@
 }
 
 @keyframes radarPulse {
-  0% {
-    transform: scale(0.3);
-    opacity: 0.9;
-  }
-  100% {
-    transform: scale(2.2);
-    opacity: 0;
-  }
+  0%   { transform: scale(0.3); opacity: 0.9; }
+  100% { transform: scale(2.2); opacity: 0;   }
 }
 
+/* ── ZOOM CONTROLS ── */
+.zoomControls {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  z-index: 20;
+  background: rgba(20, 5, 45, 0.85);
+  border: 1.5px solid rgba(95, 55, 255, 0.6);
+  border-radius: 14px;
+  padding: 10px 8px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.zoomBtn {
+  width: 36px;
+  height: 36px;
+  background: rgba(95, 55, 255, 0.25);
+  border: 1.5px solid rgba(95, 55, 255, 0.5);
+  border-radius: 10px;
+  color: white;
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+  line-height: 1;
+}
+
+.zoomBtn:hover:not(:disabled) {
+  background: #5f37ff;
+  border-color: #7b57ff;
+  box-shadow: 0 0 10px rgba(95, 55, 255, 0.5);
+}
+.zoomBtn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.zoomLevel {
+  font-size: 11px;
+  color: #cfc2ff;
+  font-weight: 700;
+  text-align: center;
+  min-width: 36px;
+  letter-spacing: 0.3px;
+}
+
+.zoomDivider {
+  width: 24px;
+  height: 1px;
+  background: rgba(95, 55, 255, 0.4);
+}
+
+.resetZoomBtn {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: rgba(20, 5, 45, 0.85);
+  border: 1.5px solid rgba(95, 55, 255, 0.6);
+  border-radius: 10px;
+  color: #cfc2ff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 14px;
+  cursor: pointer;
+  z-index: 20;
+  transition: 0.2s;
+  backdrop-filter: blur(6px);
+}
+
+.resetZoomBtn:hover { background: #5f37ff; color: white; border-color: #7b57ff; }
+
+/* ── INFO BOX ── */
 .infoBox {
   border: 2px solid #5f37ff;
   border-radius: 18px;
@@ -230,19 +233,9 @@
   padding: 18px 28px;
 }
 
-.infoBox h2 {
-  margin-top: 0;
-  margin-bottom: 16px;
-  font-size: 20px;
-  font-weight: 700;
-  color: #ffffff;
-}
+.infoBox h2 { margin: 0 0 16px; font-size: 20px; font-weight: 700; }
 
-.infoGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
+.infoGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 
 .infoCard {
   background: rgba(95, 55, 255, 0.1);
@@ -262,43 +255,14 @@
   box-shadow: 0 4px 15px rgba(95, 55, 255, 0.15);
 }
 
-.infoLabel {
-  font-size: 11px;
-  text-transform: uppercase;
-  color: #a894ff;
-  letter-spacing: 0.8px;
-  font-weight: 600;
-}
+.infoLabel { font-size: 11px; text-transform: uppercase; color: #a894ff; letter-spacing: 0.8px; font-weight: 600; }
+.infoValue { font-size: 15px; font-weight: 700; color: #ffffff; }
 
-.infoValue {
-  font-size: 15px;
-  font-weight: 700;
-  color: #ffffff;
-}
+.fuelContainer { display: flex; align-items: center; gap: 10px; width: 100%; }
+.miniFuelBar { flex: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+.miniFuelFill { height: 100%; background: linear-gradient(90deg, #ff4757 0%, #ffa502 50%, #2ed573 100%); border-radius: 3px; }
 
-.fuelContainer {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-}
-
-.miniFuelBar {
-  flex: 1;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.miniFuelFill {
-  height: 100%;
-  background: linear-gradient(90deg, #ff4757 0%, #ffa502 50%, #2ed573 100%);
-  border-radius: 3px;
-}
-
-
-
+/* ── MODAL ── */
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -320,24 +284,10 @@
   color: white;
 }
 
-.statusModal h2 {
-  text-align: center;
-  margin-bottom: 28px;
-}
+.statusModal h2 { text-align: center; margin-bottom: 28px; }
+.statusModal label { display: block; font-weight: 700; font-size: 14px; margin: 18px 0 8px; }
 
-.statusModal label {
-  display: block;
-  font-weight: 700;
-  font-size: 14px;
-  margin: 18px 0 8px;
-}
-
-.currentStatus {
-  background: #5329dd;
-  padding: 16px 22px;
-  border-radius: 22px;
-  font-size: 13px;
-}
+.currentStatus { background: #5329dd; padding: 16px 22px; border-radius: 22px; font-size: 13px; }
 
 .statusInput {
   width: 100%;
@@ -347,11 +297,10 @@
   padding: 18px 22px;
   color: white;
   outline: none;
+  box-sizing: border-box;
 }
 
-.statusInput::placeholder {
-  color: #d8ccff;
-}
+.statusInput::placeholder { color: #d8ccff; }
 
 .saveStatus {
   display: block;
@@ -366,8 +315,101 @@
   cursor: pointer;
 }
 
-.userRole {
-  display: block;
-  font-size: 10px;
+.saveStatus:hover { background: #6d4cff; }
+
+/* ── MODAL IMPROVEMENTS ── */
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.modalClose {
+  background: rgba(95, 55, 255, 0.2);
+  border: 1.5px solid rgba(95, 55, 255, 0.5);
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+  line-height: 1;
+}
+
+.modalClose:hover { background: #5f37ff; }
+
+.modalFooter {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(95, 55, 255, 0.3);
+}
+
+.cancelStatus {
+  background: transparent;
+  border: 1.5px solid rgba(95, 55, 255, 0.5);
   color: #a07eff;
+  padding: 10px 24px;
+  border-radius: 40px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.cancelStatus:hover { background: rgba(95, 55, 255, 0.15); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #1e7a3a;
+  border: 1px solid #2ed573;
+  color: white;
+  padding: 14px 20px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 1100;
+  animation: slideInRight 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.toastClose {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0;
+  opacity: 0.7;
+  line-height: 1;
+}
+
+.toastClose:hover { opacity: 1; }
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+.toastError {
+  background: #7a1a1a !important;
+  border-color: #ff4757 !important;
 }
