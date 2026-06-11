@@ -70,10 +70,6 @@ export default function LoginPage() {
         <button onClick={handleLogin} className={styles.btn}>
           Login
         </button>
-
-        <p className={styles.switch}>
-          Belum punya akun? <Link href="/signup">Sign Up</Link>
-        </p>
       </div>
 
       <Link href="/tentang" className={styles.back}>
