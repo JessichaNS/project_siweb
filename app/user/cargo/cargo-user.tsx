@@ -55,7 +55,7 @@ export default function CargoUserPage() {
   const [newCargo, setNewCargo] = useState({
     nama_pengirim: '',
     nama_penerima: '',
-    no_telepon: '+62',
+    no_telepon: '',
     kota_asal: '',
     kota_tujuan: '',
     jenis_pengiriman: 'Biasa',
@@ -213,7 +213,7 @@ export default function CargoUserPage() {
             <span className={styles.userName}>User</span>
             <span className={styles.userRole}>View Only</span>
           </div>
-          <div
+          <div 
             className={styles.userIcon}
             onClick={() => setIsLogoutModalOpen(true)}
             style={{ cursor: 'pointer' }}
@@ -237,13 +237,6 @@ export default function CargoUserPage() {
                   setPage(1);
                 }}
               />
-              <button
-                className={styles.submitBtn}
-                onClick={() => setIsAddModalOpen(true)}
-                style={{ padding: '12px 20px', margin: 0, borderRadius: '18px' }}
-              >
-                + Tambah Cargo
-              </button>
             </div>
           </div>
 
@@ -393,143 +386,6 @@ export default function CargoUserPage() {
           )}
         </aside>
       </section>
-
-      {/* MODAL TAMBAH CARGO */}
-      {isAddModalOpen && (
-        <div className={styles.modalOverlay} onClick={() => setIsAddModalOpen(false)}>
-          <div className={styles.addModal} onClick={(e) => e.stopPropagation()} style={{ width: '500px' }}>
-            <h2>📦 Tambah Cargo Baru</h2>
-            <form onSubmit={handleAddCargo}>
-              <div className={styles.modalFormGrid}>
-                <div className={styles.formColumn}>
-                  <div className={styles.formGroup}>
-                    <label>Nama Pengirim</label>
-                    <input
-                      value={newCargo.nama_pengirim}
-                      onChange={(e) => {
-                        setNewCargo({ ...newCargo, nama_pengirim: e.target.value });
-                        setErrors({ ...errors, nama_pengirim: "" });
-                      }}
-                      placeholder='Contoh: Budi Esa'
-                    />
-                    {errors.nama_pengirim && <span className={styles.errorText}>{errors.nama_pengirim}</span>}
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label>Nama Penerima</label>
-                    <input
-                      value={newCargo.nama_penerima}
-                      onChange={(e) => {
-                        setNewCargo({ ...newCargo, nama_penerima: e.target.value });
-                        setErrors({ ...errors, nama_penerima: "" });
-                      }}
-                      placeholder='Contoh: Andi Santoso'
-                    />
-                    {errors.nama_penerima && <span className={styles.errorText}>{errors.nama_penerima}</span>}
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label>No Telepon</label>
-                    <input
-                      value={newCargo.no_telepon}
-                      onChange={(e) => {
-                        setNewCargo({ ...newCargo, no_telepon: e.target.value });
-                        setErrors({ ...errors, no_telepon: "" });
-                      }}
-                      placeholder='Contoh: 08xxxxxxxxxx'
-                    />
-                    {errors.no_telepon && <span className={styles.errorText}>{errors.no_telepon}</span>}
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label>Catatan Barang</label>
-                    <input
-                      value={newCargo.catatan_barang}
-                      onChange={e => setNewCargo({ ...newCargo, catatan_barang: e.target.value })}
-                      placeholder="Opsional"
-                    />
-                  </div>
-                </div>
-
-                <div className={styles.formColumn}>
-                  <div className={styles.formGroup}>
-                    <label>Kota Asal</label>
-                    <input
-                      value={newCargo.kota_asal}
-                      onChange={(e) => {
-                        setNewCargo({ ...newCargo, kota_asal: e.target.value });
-                        setErrors({ ...errors, kota_asal: "" });
-                      }}
-                      placeholder="Contoh: Jakarta"
-                    />
-                    {errors.kota_asal && <span className={styles.errorText}>{errors.kota_asal}</span>}
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label>Kota Tujuan</label>
-                    <input
-                      value={newCargo.kota_tujuan}
-                      onChange={(e) => {
-                        setNewCargo({ ...newCargo, kota_tujuan: e.target.value });
-                        setErrors({ ...errors, kota_tujuan: "" });
-                      }}
-                      placeholder="Contoh: Bandung"
-                    />
-                    {errors.kota_tujuan && <span className={styles.errorText}>{errors.kota_tujuan}</span>}
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label>Jenis Pengiriman</label>
-                    <select
-                      value={newCargo.jenis_pengiriman}
-                      onChange={e => setNewCargo({ ...newCargo, jenis_pengiriman: e.target.value })}
-                    >
-                      <option value="Biasa">Biasa</option>
-                      <option value="Cepat">Cepat</option>
-                      <option value="VVIP">VVIP</option>
-                    </select>
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label>Berat Barang (kg)</label>
-                    <input
-                      type="number"
-                      min="1"
-                      step="0.1"
-                      value={newCargo.berat}
-                      onChange={(e) => {
-                        setNewCargo({ ...newCargo, berat: e.target.value });
-                        setErrors({ ...errors, berat: "" });
-                      }}
-                      placeholder="Contoh: 5"
-                    />
-                    {errors.berat && <span className={styles.errorText}>{errors.berat}</span>}
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label>Tarif Otomatis</label>
-                    <input
-                      readOnly
-                      type="text"
-                      value={`Rp ${newCargo.tarif.toLocaleString()}`}
-                      style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed', color: '#666', fontWeight: 'bold' }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.modalButtons}>
-                <button type="button" className={styles.cancelBtn} onClick={() => setIsAddModalOpen(false)}>
-                  Batal
-                </button>
-                <button type="submit" className={styles.submitBtn}>
-                  Simpan
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {isLogoutModalOpen && (
         <div className={styles.modalOverlay} onClick={() => setIsLogoutModalOpen(false)}>

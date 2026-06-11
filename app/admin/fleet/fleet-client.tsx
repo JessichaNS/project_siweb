@@ -11,7 +11,8 @@ type Vessel = {
   name: string;
   status: string;
   location: string;
-  fuel: number;
+  kapasitas_ton: number;
+  muatan_saat_ini: number;
 };
 
 type Toast = {
@@ -32,8 +33,9 @@ export default function FleetAdminPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [addForm, setAddForm] = useState({ name: '', status: 'In Port', location: '' });
-  const [editForm, setEditForm] = useState({ id: 0, name: '', status: '', location: '' });
+
+  const [addForm, setAddForm] = useState({ name: '', status: 'In Port', location: '', kapasitas_ton: '50' });
+  const [editForm, setEditForm] = useState({ id: 0, name: '', status: '', location: '', kapasitas_ton: '50' });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState<Toast>({ show: false, message: '', type: 'success' });
@@ -44,10 +46,23 @@ export default function FleetAdminPage() {
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
   };
 
+  // ── Helper: persen muatan ──
+  const getMuatanPersen = (vessel: Vessel) => {
+    const kapKg = Number(vessel.kapasitas_ton) * 1000;
+    if (kapKg <= 0) return 0;
+    return Math.min(Math.round((Number(vessel.muatan_saat_ini) / kapKg) * 100), 100);
+  };
+
+  const getMuatanColor = (persen: number) => {
+    if (persen >= 100) return '#ff4757';
+    if (persen >= 80)  return '#ffa502';
+    return '#4b8cff';
+  };
+
   const fetchVessels = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/vessels?search=${search}&page=${page}&limit=4`, { cache: 'no-store' });
+      const res = await fetch(`/api/vessels?search=${search}&page=${page}&limit=4`);
       const data = await res.json();
       setVessels(data.vessels || []);
       setTotalPages(data.totalPages || 1);
@@ -81,15 +96,20 @@ export default function FleetAdminPage() {
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
-      const res  = await fetch('/api/vessels', {
+      const res = await fetch('/api/vessels', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: addForm.name, status: addForm.status, location: addForm.location || 'Indonesia' }),
+        body: JSON.stringify({
+          name: addForm.name,
+          status: addForm.status,
+          location: addForm.location || 'Indonesia',
+          kapasitas_ton: Number(addForm.kapasitas_ton) || 50,
+        }),
       });
       const data = await res.json();
       if (data.success) {
         setIsAddModalOpen(false);
-        setAddForm({ name: '', status: 'In Port', location: '' });
+        setAddForm({ name: '', status: 'In Port', location: '', kapasitas_ton: '50' });
         await fetchVessels();
         showToast(`✅ Vessel "${addForm.name}" berhasil ditambahkan`, 'success');
       } else {
@@ -104,17 +124,29 @@ export default function FleetAdminPage() {
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
-      const res  = await fetch('/api/vessels', {
+      const res = await fetch('/api/vessels', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: editForm.id, name: editForm.name, status: editForm.status, location: editForm.location || 'Indonesia' }),
+        body: JSON.stringify({
+          id: editForm.id,
+          name: editForm.name,
+          status: editForm.status,
+          location: editForm.location || 'Indonesia',
+          kapasitas_ton: Number(editForm.kapasitas_ton) || 50,
+        }),
       });
       const data = await res.json();
       if (data.success) {
         setIsEditModalOpen(false);
         await fetchVessels();
         if (selectedVessel?.id === editForm.id) {
-          setSelectedVessel({ ...selectedVessel, name: editForm.name, status: editForm.status, location: editForm.location || 'Indonesia' });
+          setSelectedVessel({
+            ...selectedVessel,
+            name: editForm.name,
+            status: editForm.status,
+            location: editForm.location || 'Indonesia',
+            kapasitas_ton: Number(editForm.kapasitas_ton) || 50,
+          });
         }
         showToast(`✏️ Vessel "${editForm.name}" berhasil diupdate`, 'success');
       } else {
@@ -145,7 +177,13 @@ export default function FleetAdminPage() {
 
   const openEditModal = () => {
     if (!selectedVessel) { showToast('Pilih vessel terlebih dahulu', 'error'); return; }
-    setEditForm({ id: selectedVessel.id, name: selectedVessel.name, status: selectedVessel.status, location: selectedVessel.location });
+    setEditForm({
+      id: selectedVessel.id,
+      name: selectedVessel.name,
+      status: selectedVessel.status,
+      location: selectedVessel.location,
+      kapasitas_ton: String(selectedVessel.kapasitas_ton || 50),
+    });
     setIsEditModalOpen(true);
   };
 
@@ -158,12 +196,11 @@ export default function FleetAdminPage() {
   };
 
   return (
-<main className={styles.container}>
+    <main className={styles.container}>
       <Megamenu onLogout={() => setIsLogoutModalOpen(true)} />
 
-
-      {/* ── MAIN GRID ── */}
       <section className={styles.mainGrid}>
+        {/* LEFT — vessel list */}
         <section className={styles.leftPanel}>
           <div className={styles.leftHeader}>
             <h2>Vessel List</h2>
@@ -181,26 +218,34 @@ export default function FleetAdminPage() {
             ) : vessels.length === 0 ? (
               <p className={styles.loadingText}>No vessels found</p>
             ) : (
-              vessels.map((vessel) => (
-                <div
-                  key={vessel.id}
-                  className={`${styles.vesselCard} ${selectedVessel?.id === vessel.id ? styles.selected : ''}`}
-                  onClick={() => setSelectedVessel(vessel)}
-                >
-                  <div className={styles.cardTop}>
-                    <h3>{vessel.name}</h3>
-                    <span className={`${styles.badge} ${getBadgeClass(vessel.status)}`}>{vessel.status}</span>
+              vessels.map((vessel) => {
+                const persen = getMuatanPersen(vessel);
+                const color  = getMuatanColor(persen);
+                const kapKg  = Number(vessel.kapasitas_ton) * 1000;
+                const muatan = Number(vessel.muatan_saat_ini ?? 0);
+                return (
+                  <div
+                    key={vessel.id}
+                    className={`${styles.vesselCard} ${selectedVessel?.id === vessel.id ? styles.selected : ''}`}
+                    onClick={() => setSelectedVessel(vessel)}
+                  >
+                    <div className={styles.cardTop}>
+                      <h3>{vessel.name}</h3>
+                      <span className={`${styles.badge} ${getBadgeClass(vessel.status)}`}>{vessel.status}</span>
+                    </div>
+                    <p className={styles.location}>📍 {vessel.location}</p>
+
+                    {/* Kapasitas muatan */}
+                    <div className={styles.fuelRow}>
+                      <span>Muatan</span>
+                      <span style={{ color }}>{muatan.toLocaleString('id-ID')} / {kapKg.toLocaleString('id-ID')} kg</span>
+                    </div>
+                    <div className={styles.fuelBar}>
+                      <div className={styles.fuelFill} style={{ width: `${persen}%`, background: color }} />
+                    </div>
                   </div>
-                  <p className={styles.location}>📍 {vessel.location}</p>
-                  <div className={styles.fuelRow}>
-                    <span>Fuel Level</span>
-                    <span>{vessel.fuel}%</span>
-                  </div>
-                  <div className={styles.fuelBar}>
-                    <div className={styles.fuelFill} style={{ width: `${vessel.fuel}%` }} />
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 
@@ -211,21 +256,36 @@ export default function FleetAdminPage() {
           </div>
         </section>
 
+        {/* RIGHT — detail */}
         <aside className={styles.rightPanel}>
-          {selectedVessel ? (
-            <div className={styles.detailCard}>
-              <h2>{selectedVessel.name}</h2>
-              <p>📍 <b>Location:</b> {selectedVessel.location}</p>
-              <p><b>Status:</b> {selectedVessel.status}</p>
-              <p><b>Fuel:</b> {selectedVessel.fuel}%</p>
-              <div className={styles.fuelBar}>
-                <div className={styles.fuelFill} style={{ width: `${selectedVessel.fuel}%` }} />
+          {selectedVessel ? (() => {
+            const persen = getMuatanPersen(selectedVessel);
+            const color  = getMuatanColor(persen);
+            const kapKg  = Number(selectedVessel.kapasitas_ton) * 1000;
+            const muatan = Number(selectedVessel.muatan_saat_ini ?? 0);
+            const sisa   = Math.max(0, kapKg - muatan);
+            return (
+              <div className={styles.detailCard}>
+                <h2>{selectedVessel.name}</h2>
+                <p>📍 <b>Location:</b> {selectedVessel.location}</p>
+                <p><b>Status:</b> {selectedVessel.status}</p>
+                <p><b>Kapasitas:</b> {kapKg.toLocaleString('id-ID')} kg ({selectedVessel.kapasitas_ton} ton)</p>
+                <p><b>Muatan Aktif:</b> {muatan.toLocaleString('id-ID')} kg</p>
+                <p>
+                  <b>Sisa Kapasitas:</b>{' '}
+                  <span style={{ color: sisa <= 0 ? '#ff4757' : '#7fffb0', fontWeight: 700 }}>
+                    {sisa <= 0 ? 'PENUH' : `${sisa.toLocaleString('id-ID')} kg`}
+                  </span>
+                </p>
+                <div className={styles.fuelBar} style={{ marginTop: 6 }}>
+                  <div className={styles.fuelFill} style={{ width: `${persen}%`, background: color }} />
+                </div>
+                <button className={styles.deleteButton} onClick={() => setIsDeleteModalOpen(true)}>
+                  Delete Vessel
+                </button>
               </div>
-              <button className={styles.deleteButton} onClick={() => setIsDeleteModalOpen(true)}>
-                Delete Vessel
-              </button>
-            </div>
-          ) : (
+            );
+          })() : (
             <div className={styles.emptyDetail}>
               No Vessel Selected<br />Select a vessel to view details
             </div>
@@ -256,6 +316,11 @@ export default function FleetAdminPage() {
                 <label>Location</label>
                 <input type="text" placeholder="e.g., Pelabuhan Tanjung Priok, Jakarta" value={addForm.location}
                   onChange={(e) => setAddForm({ ...addForm, location: e.target.value })} />
+              </div>
+              <div className={styles.inputGroup}>
+                <label>Kapasitas (ton)</label>
+                <input type="number" placeholder="e.g., 50" value={addForm.kapasitas_ton}
+                  onChange={(e) => setAddForm({ ...addForm, kapasitas_ton: e.target.value })} />
               </div>
               <div className={styles.inputGroup}>
                 <label>Status</label>
@@ -297,6 +362,11 @@ export default function FleetAdminPage() {
                   onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} />
               </div>
               <div className={styles.inputGroup}>
+                <label>Kapasitas (ton)</label>
+                <input type="number" value={editForm.kapasitas_ton}
+                  onChange={(e) => setEditForm({ ...editForm, kapasitas_ton: e.target.value })} />
+              </div>
+              <div className={styles.inputGroup}>
                 <label>Status</label>
                 <select value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}>
                   <option value="In Port">⚓ In Port</option>
@@ -316,7 +386,7 @@ export default function FleetAdminPage() {
         </div>
       )}
 
-      {/* ── DELETE CONFIRMATION MODAL ── */}
+      {/* ── DELETE MODAL ── */}
       {isDeleteModalOpen && (
         <div className={styles.modalOverlay} onClick={() => setIsDeleteModalOpen(false)}>
           <div className={styles.logoutModal} onClick={(e) => e.stopPropagation()}>

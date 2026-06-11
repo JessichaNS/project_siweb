@@ -1,10 +1,17 @@
 'use client';
-
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './carg.module.css';
 import Megamenu from '@/app/ui/megamenu/megamenu';
+
+const TARIF_PER_KG: Record<string, number> = {
+  'Biasa': 10000,
+  'Cepat': 15000,
+  'VVIP':  25000,
+};
+function hitungTarif(berat: number, jenis: string): number {
+  return Math.round(berat * (TARIF_PER_KG[jenis] ?? 10000));
+}
 
 type Cargo = {
   id: number;
@@ -17,11 +24,21 @@ type Cargo = {
   jenis_pengiriman: string;
   status: string;
   tarif: number;
+  berat: number;
   catatan_barang: string;
   pelanggan_id: number;
   vessel_id: number;
+  nama_kapal: string;
   pelabuhan_asal_id: number;
   pelabuhan_tujuan_id: number;
+};
+
+type Vessel = {
+  id: number;
+  name: string;
+  status: string;
+  kapasitas_ton: number;
+  muatan_saat_ini: number;
 };
 
 type Toast = {
@@ -33,7 +50,7 @@ type Toast = {
 export default function CargoAdminPage() {
   const router = useRouter();
   const [cargo, setCargo] = useState<Cargo[]>([]);
-  const [allCargo, setAllCargo] = useState<Cargo[]>([]);
+  const [vessels, setVessels] = useState<Vessel[]>([]);
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Cargo | null>(null);
   const [page, setPage] = useState(1);
@@ -46,8 +63,6 @@ export default function CargoAdminPage() {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // stats computed from ALL cargo (fetched separately)
   const [statsSelesai, setStatsSelesai] = useState(0);
   const [statsDikirim, setStatsDikirim] = useState(0);
   const [statsDiproses, setStatsDiproses] = useState(0);
@@ -66,9 +81,9 @@ export default function CargoAdminPage() {
     kota_tujuan: '',
     jenis_pengiriman: 'Biasa',
     status: 'Diproses',
-    tarif: '',
+    berat: '',
     catatan_barang: '',
-    vessel_id: '1',
+    vessel_id: '',
     pelabuhan_asal_id: '1',
     pelabuhan_tujuan_id: '2',
   });
@@ -84,8 +99,9 @@ export default function CargoAdminPage() {
     kota_tujuan: '',
     jenis_pengiriman: '',
     status: '',
-    tarif: '',
+    berat: '',
     catatan_barang: '',
+    vessel_id: '',
   });
 
   const getCargo = async () => {
@@ -97,12 +113,21 @@ export default function CargoAdminPage() {
   };
 
   const getStats = async () => {
-    const res = await fetch(`/api/pengiriman?limit=999`);
+    const res = await fetch('/api/pengiriman?stats=true');
     const data = await res.json();
-    const all: Cargo[] = data.pengiriman || [];
-    setStatsSelesai(all.filter(c => c.status === 'Selesai').length);
-    setStatsDikirim(all.filter(c => c.status === 'Dikirim').length);
-    setStatsDiproses(all.filter(c => c.status === 'Diproses' || c.status === 'Pending').length);
+    setStatsSelesai(data.selesai   || 0);
+    setStatsDikirim(data.dikirim   || 0);
+    setStatsDiproses(data.diproses || 0);
+    setTotal(data.total            || 0);
+  };
+
+  const getVessels = async () => {
+    const res = await fetch('/api/vessels?limit=999');
+    const data = await res.json();
+    setVessels(data.vessels || []);
+    if (data.vessels?.length > 0) {
+      setAddForm(prev => ({ ...prev, vessel_id: String(data.vessels[0].id) }));
+    }
   };
 
   useEffect(() => {
@@ -111,7 +136,7 @@ export default function CargoAdminPage() {
       alert('Anda harus login sebagai Admin!');
       setTimeout(() => router.push('/login'), 1000);
     }
-    getStats();
+    Promise.all([getCargo(), getStats(), getVessels()]);
   }, []);
 
   useEffect(() => {
@@ -124,8 +149,7 @@ export default function CargoAdminPage() {
     if (result.success) {
       setSelected(null);
       setIsDeleteModalOpen(false);
-      await getCargo();
-      await getStats();
+      await Promise.all([getCargo(), getStats()]);
       showToast('🗑️ Cargo berhasil dihapus', 'success');
     } else {
       showToast(result.error || 'Gagal menghapus cargo', 'error');
@@ -152,14 +176,16 @@ export default function CargoAdminPage() {
   };
 
   const validateForm = (form: typeof addForm | typeof editForm) => {
-    const required = ['nama_pengirim', 'nama_penerima', 'no_telepon', 'kota_asal', 'kota_tujuan', 'tarif'];
+    const required = ['nama_pengirim', 'nama_penerima', 'no_telepon', 'kota_asal', 'kota_tujuan', 'berat'];
     for (const f of required) {
       if (!(form as any)[f]) return `Field '${f}' wajib diisi`;
     }
+    if (!('vessel_id' in form) || !(form as any).vessel_id)
+      return 'Pilih kapal terlebih dahulu';
     if (!/^\+?[0-9]{8,15}$/.test(form.no_telepon.replace(/\+/g, '')))
       return 'Nomor telepon harus berupa angka 8-15 digit';
-    if (isNaN(Number(form.tarif)) || Number(form.tarif) < 0)
-      return 'Tarif harus berupa angka positif';
+    if (isNaN(Number(form.berat)) || Number(form.berat) <= 0)
+      return 'Berat harus berupa angka positif';
     return null;
   };
 
@@ -171,13 +197,18 @@ export default function CargoAdminPage() {
     return styles.badge;
   };
 
+  const getNamaKapal = (vesselId: number) => {
+    const v = vessels.find(v => v.id === vesselId);
+    return v ? v.name : '-';
+  };
+
   return (
     <main className={styles.container}>
+      {/* ── MEGAMENU (sama seperti halaman lain) ── */}
       <Megamenu onLogout={() => setIsLogoutModalOpen(true)} />
 
       {/* ── MAIN GRID ── */}
       <section className={styles.mainGrid}>
-
         {/* LEFT — cargo list */}
         <section className={styles.leftPanel}>
           <div className={styles.leftHeader}>
@@ -210,7 +241,7 @@ export default function CargoAdminPage() {
               <span className={styles.statIcon}>🚚</span>
               <div>
                 <div className={styles.statValue}>{statsDikirim}</div>
-                <div className={styles.statLabel}>In Sent</div>
+                <div className={styles.statLabel}>In Transit</div>
               </div>
             </div>
             <div className={styles.statBox}>
@@ -247,7 +278,7 @@ export default function CargoAdminPage() {
                   </div>
                   <div className={styles.cardBottom}>
                     <span className={styles.cardJenis}>
-                      {item.jenis_pengiriman === 'Cepat' ? '⚡' : item.jenis_pengiriman === 'VVIP' ? '💎' : '📦'} {item.jenis_pengiriman}
+                      {item.jenis_pengiriman === 'Cepat' ? '⚡' : item.jenis_pengiriman === 'VVIP' ? '💎' : '📦'} {item.jenis_pengiriman} {item.berat ? `• ${item.berat}kg` : ''}
                     </span>
                     <strong className={styles.cardTarif}>Rp {item.tarif.toLocaleString('id-ID')}</strong>
                   </div>
@@ -303,6 +334,16 @@ export default function CargoAdminPage() {
               </div>
 
               <div className={styles.detailSection}>
+                <div className={styles.detailSectionTitle}>🚢 Vessel</div>
+                <div className={styles.detailRow}>
+                  <span className={styles.detailKey}>Kapal</span>
+                  <span className={styles.detailVal}>
+                    {selected.nama_kapal || getNamaKapal(selected.vessel_id) || '-'}
+                  </span>
+                </div>
+              </div>
+
+              <div className={styles.detailSection}>
                 <div className={styles.detailSectionTitle}>💰 Financial & Service</div>
                 <div className={styles.detailRow}>
                   <span className={styles.detailKey}>Jenis Pengiriman</span>
@@ -311,7 +352,17 @@ export default function CargoAdminPage() {
                   </span>
                 </div>
                 <div className={styles.detailRow}>
-                  <span className={styles.detailKey}>Tarif</span>
+                  <span className={styles.detailKey}>Berat</span>
+                  <span className={styles.detailVal}>{selected.berat ? `${selected.berat} kg` : '-'}</span>
+                </div>
+                <div className={styles.detailRow}>
+                  <span className={styles.detailKey}>Tarif/kg</span>
+                  <span className={styles.detailVal}>
+                    Rp {(TARIF_PER_KG[selected.jenis_pengiriman] ?? 10000).toLocaleString('id-ID')}
+                  </span>
+                </div>
+                <div className={styles.detailRow}>
+                  <span className={styles.detailKey}>Total Tarif</span>
                   <span className={styles.detailValHighlight}>Rp {selected.tarif.toLocaleString('id-ID')}</span>
                 </div>
                 {selected.catatan_barang && (
@@ -350,8 +401,9 @@ export default function CargoAdminPage() {
                 kota_tujuan: selected.kota_tujuan,
                 jenis_pengiriman: selected.jenis_pengiriman,
                 status: selected.status,
-                tarif: String(selected.tarif),
+                berat: String(selected.berat || ''),
                 catatan_barang: selected.catatan_barang,
+                vessel_id: String(selected.vessel_id || ''),
               });
               setEditError('');
               setIsEditOpen(true);
@@ -407,6 +459,24 @@ export default function CargoAdminPage() {
                     onChange={(e) => setAddForm({ ...addForm, kota_tujuan: e.target.value })} />
                 </div>
                 <div className={styles.formGroup}>
+                  <label>Kapal Pengangkut</label>
+                  <select value={addForm.vessel_id}
+                    onChange={(e) => setAddForm({ ...addForm, vessel_id: e.target.value })}>
+                    <option value="">— Pilih Kapal —</option>
+                    {vessels.map(v => {
+                      const kapKg  = Number(v.kapasitas_ton) * 1000;
+                      const muatan = Number(v.muatan_saat_ini ?? 0);
+                      const sisa   = kapKg - muatan;
+                      const penuh  = sisa <= 0;
+                      return (
+                        <option key={v.id} value={String(v.id)} disabled={penuh}>
+                          {v.name} — Sisa {penuh ? 'PENUH' : `${sisa.toLocaleString('id-ID')} kg`} ({v.status})
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+                <div className={styles.formGroup}>
                   <label>Jenis Pengiriman</label>
                   <select value={addForm.jenis_pengiriman}
                     onChange={(e) => setAddForm({ ...addForm, jenis_pengiriman: e.target.value })}>
@@ -426,9 +496,18 @@ export default function CargoAdminPage() {
                   </select>
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Tarif</label>
-                  <input type="number" placeholder="Tarif" value={addForm.tarif}
-                    onChange={(e) => setAddForm({ ...addForm, tarif: e.target.value })} />
+                  <label>Berat (kg)</label>
+                  <input type="number" placeholder="Contoh: 10" value={addForm.berat}
+                    onChange={(e) => setAddForm({ ...addForm, berat: e.target.value })} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Tarif (otomatis)</label>
+                  <input type="text" readOnly
+                    value={addForm.berat && Number(addForm.berat) > 0
+                      ? `Rp ${hitungTarif(Number(addForm.berat), addForm.jenis_pengiriman).toLocaleString('id-ID')}`
+                      : 'Isi berat untuk kalkulasi'}
+                    style={{ background: '#1e0a35', cursor: 'not-allowed', color: '#7fffb0' }}
+                  />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Catatan Barang</label>
@@ -459,12 +538,11 @@ export default function CargoAdminPage() {
                   setAddForm({
                     tanggal_transaksi: '', nama_pengirim: '', nama_penerima: '',
                     no_telepon: '+62', kota_asal: '', kota_tujuan: '',
-                    jenis_pengiriman: 'Biasa', status: 'Diproses', tarif: '',
-                    catatan_barang: '', vessel_id: '1',
+                    jenis_pengiriman: 'Biasa', status: 'Diproses', berat: '',
+                    catatan_barang: '', vessel_id: vessels[0] ? String(vessels[0].id) : '',
                     pelabuhan_asal_id: '1', pelabuhan_tujuan_id: '2',
                   });
-                  await getCargo();
-                  await getStats();
+                  await Promise.all([getCargo(), getStats()]);
                 } catch { setAddError('Koneksi database terputus atau gagal terhubung'); }
                 finally { setIsSubmitting(false); }
               }}>{isSubmitting ? 'Menyimpan...' : 'SAVE'}</button>
@@ -514,6 +592,24 @@ export default function CargoAdminPage() {
                     onChange={(e) => setEditForm({ ...editForm, kota_tujuan: e.target.value })} />
                 </div>
                 <div className={styles.formGroup}>
+                  <label>Kapal Pengangkut</label>
+                  <select value={editForm.vessel_id}
+                    onChange={(e) => setEditForm({ ...editForm, vessel_id: e.target.value })}>
+                    <option value="">— Pilih Kapal —</option>
+                    {vessels.map(v => {
+                      const kapKg  = Number(v.kapasitas_ton) * 1000;
+                      const muatan = Number(v.muatan_saat_ini ?? 0);
+                      const sisa   = kapKg - muatan;
+                      const penuh  = sisa <= 0;
+                      return (
+                        <option key={v.id} value={String(v.id)} disabled={penuh}>
+                          {v.name} — Sisa {penuh ? 'PENUH' : `${sisa.toLocaleString('id-ID')} kg`} ({v.status})
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+                <div className={styles.formGroup}>
                   <label>Jenis Pengiriman</label>
                   <select value={editForm.jenis_pengiriman}
                     onChange={(e) => setEditForm({ ...editForm, jenis_pengiriman: e.target.value })}>
@@ -533,9 +629,18 @@ export default function CargoAdminPage() {
                   </select>
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Tarif</label>
-                  <input type="number" value={editForm.tarif}
-                    onChange={(e) => setEditForm({ ...editForm, tarif: e.target.value })} />
+                  <label>Berat (kg)</label>
+                  <input type="number" value={editForm.berat}
+                    onChange={(e) => setEditForm({ ...editForm, berat: e.target.value })} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Tarif (otomatis)</label>
+                  <input type="text" readOnly
+                    value={editForm.berat && Number(editForm.berat) > 0
+                      ? `Rp ${hitungTarif(Number(editForm.berat), editForm.jenis_pengiriman).toLocaleString('id-ID')}`
+                      : 'Isi berat untuk kalkulasi'}
+                    style={{ background: '#1e0a35', cursor: 'not-allowed', color: '#7fffb0' }}
+                  />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Catatan Barang</label>
@@ -562,8 +667,7 @@ export default function CargoAdminPage() {
                   setEditError('');
                   setIsEditOpen(false);
                   showToast(`✏️ ${editForm.no_resi} berhasil diupdate`, 'success');
-                  await getCargo();
-                  await getStats();
+                  await Promise.all([getCargo(), getStats()]);
                 } catch { setEditError('Koneksi database terputus atau gagal terhubung'); }
                 finally { setIsSubmitting(false); }
               }}>{isSubmitting ? 'Menyimpan...' : 'SAVE'}</button>
@@ -572,7 +676,7 @@ export default function CargoAdminPage() {
         </div>
       )}
 
-      {/* ── DELETE CONFIRMATION MODAL ── */}
+      {/* ── DELETE MODAL ── */}
       {isDeleteModalOpen && (
         <div className={styles.modalOverlay} onClick={() => setIsDeleteModalOpen(false)}>
           <div className={styles.logoutModal} onClick={(e) => e.stopPropagation()}>
@@ -580,9 +684,7 @@ export default function CargoAdminPage() {
             <p>Yakin ingin menghapus cargo <b>{selected?.no_resi}</b>?</p>
             <div className={styles.logoutButtons}>
               <button className={styles.cancelLogout} onClick={() => setIsDeleteModalOpen(false)}>Batal</button>
-              <button className={styles.confirmLogout} onClick={() => selected && deleteCargo(selected.id)}>
-                Ya, Hapus
-              </button>
+              <button className={styles.confirmLogout} onClick={() => selected && deleteCargo(selected.id)}>Ya, Hapus</button>
             </div>
           </div>
         </div>
